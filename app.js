@@ -55,42 +55,107 @@ async function onScanSuccess(decodedText){
 }
 
 async function startScanner(){
+
     try{
+
         scanner = new Html5Qrcode("reader");
+
+
+        const cameras = await Html5Qrcode.getCameras();
+
+
+        if(!cameras || cameras.length === 0){
+
+            throw new Error("No camera detected.");
+
+        }
+
+
+        let cameraId = cameras[0].id;
+
+
+        const backCamera = cameras.find(function(camera){
+
+            return camera.label
+                .toLowerCase()
+                .includes("back");
+
+        });
+
+
+        if(backCamera){
+
+            cameraId = backCamera.id;
+
+        }
+
+
         await scanner.start(
+
+            cameraId,
+
             {
-                facingMode:"environment"
-            },
-            {
+
                 fps:10,
-              qrbox: function(viewfinderWidth, viewfinderHeight){
-    let minEdge =
-        Math.min(
-            viewfinderWidth,
-            viewfinderHeight
-        );
 
-    return {
-        width: minEdge * 0.7,
-        height: minEdge * 0.7
-    };
+                qrbox:function(
+                    viewfinderWidth,
+                    viewfinderHeight
+                ){
 
-},
+                    let minEdge =
+                        Math.min(
+                            viewfinderWidth,
+                            viewfinderHeight
+                        );
+
+
+                    return {
+
+                        width:minEdge * 0.7,
+
+                        height:minEdge * 0.7
+
+                    };
+
+                }
+
+            },
+
             onScanSuccess
+
         );
+
 
         showMessage("Ready to Scan...");
+
+
     }
+
+
     catch(error){
+
+
         showMessage(`
+
         <div class="error">
+
         Camera Error
+
         </div>
+
         <br>
-        ${error}
+
+        ${error.message}
+
         `);
+
+
         console.error(error);
+
+
     }
+
 }
 
 window.onload=function(){
