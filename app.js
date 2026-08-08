@@ -129,15 +129,20 @@ async function startScanner(){
 
                 fps:10,
 
-                qrbox:{
+              qrbox: function(viewfinderWidth, viewfinderHeight){
 
-                    width:260,
+    let minEdge =
+        Math.min(
+            viewfinderWidth,
+            viewfinderHeight
+        );
 
-                    height:260
+    return {
+        width: minEdge * 0.7,
+        height: minEdge * 0.7
+    };
 
-                }
-
-            },
+},
 
             onScanSuccess
 
