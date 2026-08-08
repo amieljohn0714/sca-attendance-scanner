@@ -1,65 +1,118 @@
 const API_URL =
 "https://script.google.com/macros/s/AKfycbyunRcLrGqxqZVmsj6BMiMsS4ga1FnO951o7bHS9_OdpySAGqJiX164DCRL1avxLmIK4A/exec";
 
+
 let scanner;
 let busy = false;
 
+
 function showMessage(html){
+
     document.getElementById("result").innerHTML = html;
+
 }
+
+
 async function onScanSuccess(decodedText){
+
     if(busy){
         return;
     }
+
     busy = true;
+
+
     try {
+
         const response = await fetch(API_URL, {
+
             method: "POST",
-            headers:{
-             "Content-Type":"application/json"
-            }
+
             body: JSON.stringify({
-             qrID: decodedText
+
+                qrID: decodedText
+
             })
+
         });
+
+
         const result = await response.json();
 
+
+
         if(result.success){
+
             showMessage(`
+
             <div class="success">
+
             ✅ Attendance Recorded
+
             </div>
+
             <br>
+
             ${result.message}
+
             `);
+
         }
+
         else{
+
             showMessage(`
+
             <div class="error">
+
             ❌ ${result.message}
+
             </div>
+
             `);
+
         }
-    }
-    catch(error){
-        showMessage(`
-        <div class="error">
-        ❌ Connection Error
-        </div>
-        <br>
-        ${error.message}
-        `);
+
+
     }
 
+    catch(error){
+
+        showMessage(`
+
+        <div class="error">
+
+        ❌ Connection Error
+
+        </div>
+
+        <br>
+
+        ${error.message}
+
+        `);
+
+    }
+
+
     setTimeout(()=>{
+
         busy=false;
+
         showMessage("Ready to Scan...");
+
+
     },2000);
+
+
 }
+
+
 
 async function startScanner(){
 
     try{
+
 
         scanner = new Html5Qrcode("reader");
 
@@ -67,18 +120,22 @@ async function startScanner(){
         await scanner.start(
 
             {
-                facingMode:{
-                    exact:"environment"
-                }
+
+                facingMode:"environment"
+
             },
 
             {
+
                 fps:10,
 
-            qrbox:{
-    width:260,
-    height:260
-}
+                qrbox:{
+
+                    width:260,
+
+                    height:260
+
+                }
 
             },
 
@@ -92,17 +149,20 @@ async function startScanner(){
 
     }
 
+
     catch(error){
 
         showMessage(`
 
         <div class="error">
+
         Camera Error
+
         </div>
 
         <br>
 
-        ${error.message}
+        ${error}
 
         `);
 
@@ -112,6 +172,10 @@ async function startScanner(){
 
 }
 
+
+
 window.onload=function(){
+
     startScanner();
+
 };
