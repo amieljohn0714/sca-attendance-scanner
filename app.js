@@ -1,6 +1,7 @@
-const API_URL =
+const DEFAULT_API_URL =
 "https://script.google.com/macros/s/AKfycbyunRcLrGqxqZVmsj6BMiMsS4ga1FnO951o7bHS9_OdpySAGqJiX164DCRL1avxLmIK4A/exec";
 
+const API_URL = new URLSearchParams(window.location.search).get("apiUrl") || DEFAULT_API_URL;
 
 let scanner;
 let busy = false;
@@ -89,6 +90,25 @@ async function postAttendance(qrID, attempt = 1){
 }
 
 
+function showConnectionError(message){
+
+    showMessage(`
+
+    <div class="error">
+
+    ❌ Connection Error
+
+    </div>
+
+    <br>
+
+    ${message}
+
+    `);
+
+}
+
+
 async function onScanSuccess(decodedText){
 
     if(busy){
@@ -141,19 +161,19 @@ async function onScanSuccess(decodedText){
 
     catch(error){
 
-        showMessage(`
+        const errorMessage = error && error.message ? error.message : String(error);
 
-        <div class="error">
+        if(/failed to fetch|network|load failed|fetch/i.test(errorMessage)){
 
-        ❌ Connection Error
+            showConnectionError("The attendance server could not be reached. Make sure the app is opened from a local server or that the API URL is reachable.");
 
-        </div>
+        }
 
-        <br>
+        else{
 
-        ${error.message}
+            showConnectionError(errorMessage);
 
-        `);
+        }
 
     }
 
@@ -175,6 +195,26 @@ async function onScanSuccess(decodedText){
 async function startScanner(){
 
     try{
+
+        if(typeof Html5Qrcode === "undefined"){
+
+            showMessage(`
+
+            <div class="error">
+
+            Scanner library failed to load
+
+            </div>
+
+            <br>
+
+            Open this project from a local server (for example, http://localhost:8000) or check your internet connection.
+
+            `);
+
+            return;
+
+        }
 
 
         scanner = new Html5Qrcode("reader");
@@ -215,19 +255,43 @@ async function startScanner(){
 
     catch(error){
 
-        showMessage(`
+        const errorText = String(error);
 
-        <div class="error">
+        if(/not allowed|permission|secure context|camera/i.test(errorText)){
 
-        Camera Error
+            showMessage(`
 
-        </div>
+            <div class="error">
 
-        <br>
+            Camera access blocked
 
-        ${error}
+            </div>
 
-        `);
+            <br>
+
+            Allow camera permission and open the app from a secure/local address such as http://localhost.
+
+            `);
+
+        }
+
+        else{
+
+            showMessage(`
+
+            <div class="error">
+
+            Camera Error
+
+            </div>
+
+            <br>
+
+            ${errorText}
+
+            `);
+
+        }
 
         console.error(error);
 
