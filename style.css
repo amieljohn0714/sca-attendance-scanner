@@ -24,6 +24,60 @@ text-align:center;
 
 }
 
+.controls{
+
+margin:20px 0;
+padding:15px;
+background:white;
+border-radius:15px;
+
+}
+
+.controls label{
+
+display:block;
+margin-bottom:8px;
+font-weight:bold;
+
+}
+
+.controls-row{
+
+display:flex;
+flex-wrap:wrap;
+gap:10px;
+
+}
+
+.controls-row input{
+
+flex:1;
+min-width:220px;
+padding:10px 12px;
+border:1px solid #ccc;
+border-radius:8px;
+
+}
+
+.controls-row button{
+
+padding:10px 14px;
+border:none;
+border-radius:8px;
+background:#0d6efd;
+color:white;
+cursor:pointer;
+
+}
+
+.hint{
+
+margin-top:8px;
+font-size:14px;
+color:#666;
+
+}
+
 #reader{
 
 width:100%;
