@@ -13,6 +13,82 @@ function showMessage(html){
 }
 
 
+function sleep(ms){
+
+    return new Promise(resolve => setTimeout(resolve, ms));
+
+}
+
+
+async function postAttendance(qrID, attempt = 1){
+
+    const response = await fetch(API_URL, {
+
+        method: "POST",
+
+        headers: {
+
+            "Content-Type": "application/json"
+
+        },
+
+        body: JSON.stringify({
+
+            qrID
+
+        })
+
+    });
+
+
+    const text = await response.text();
+
+    let result = {};
+
+
+    try {
+
+        result = text ? JSON.parse(text) : {};
+
+    }
+
+    catch(error){
+
+        result = {
+
+            success: false,
+
+            message: text || "Invalid server response"
+
+        };
+
+    }
+
+
+    const isLockError = /transaction lock|temporarily|locked|database repository/i.test(`${result.message || ""} ${text || ""}`);
+
+
+    if((!response.ok || !result.success) && isLockError && attempt < 3){
+
+        await sleep(1000 * attempt);
+
+        return postAttendance(qrID, attempt + 1);
+
+    }
+
+
+    if(!response.ok || !result.success){
+
+        throw new Error(result.message || "Unable to record attendance");
+
+    }
+
+
+    return result;
+
+}
+
+
 async function onScanSuccess(decodedText){
 
     if(busy){
@@ -24,20 +100,7 @@ async function onScanSuccess(decodedText){
 
     try {
 
-        const response = await fetch(API_URL, {
-
-            method: "POST",
-
-            body: JSON.stringify({
-
-                qrID: decodedText
-
-            })
-
-        });
-
-
-        const result = await response.json();
+        const result = await postAttendance(decodedText);
 
 
 
