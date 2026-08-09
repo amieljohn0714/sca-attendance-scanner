@@ -80,6 +80,26 @@ function setupApiUrlControl(){
 
 }
 
+function setupStartButton() {
+    const button = document.getElementById('startScannerBtn');
+
+    if (!button) {
+        return;
+    }
+
+    button.addEventListener('click', () => {
+        button.disabled = true;
+        button.textContent = 'Starting...';
+
+        startScanner()
+            .catch(() => {})
+            .finally(() => {
+                button.disabled = false;
+                button.textContent = 'Start Scanner';
+            });
+    });
+}
+
 
 function sleep(ms){
 
@@ -87,6 +107,42 @@ function sleep(ms){
 
 }
 
+function isIosSafari() {
+    var ua = navigator.userAgent || '';
+    return /iP(ad|od|hone)/i.test(ua) && /Safari/i.test(ua) && !/CriOS|FxiOS|OPiOS/i.test(ua);
+}
+
+function getCameraIdOrConfig(cameras) {
+    if (isIosSafari()) {
+        return cameras[0].id;
+    }
+
+    return {
+        facingMode: 'environment'
+    };
+}
+
+function jsonpGet(url) {
+    return new Promise(function(resolve, reject) {
+        var callbackName = 'jsonp_callback_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+
+        window[callbackName] = function(data) {
+            resolve(data);
+            delete window[callbackName];
+            script.remove();
+        };
+
+        var script = document.createElement('script');
+        script.src = url + (url.indexOf('?') === -1 ? '?' : '&') + 'callback=' + callbackName;
+        script.onerror = function() {
+            delete window[callbackName];
+            script.remove();
+            reject(new Error('Network error while calling Apps Script endpoint.'));
+        };
+
+        document.body.appendChild(script);
+    });
+}
 
 async function postAttendance(qrID, attempt = 1){
 
@@ -96,67 +152,51 @@ async function postAttendance(qrID, attempt = 1){
 
     }
 
-    const response = await fetch(API_URL, {
-
-        method: "POST",
-
-        headers: {
-
-            "Content-Type": "application/json"
-
-        },
-
-        body: JSON.stringify({
-
-            qrID
-
-        })
-
-    });
-
-
-    const text = await response.text();
-
-    let result = {};
-
+    var result;
+    var useJsonp = true;
 
     try {
-
-        result = text ? JSON.parse(text) : {};
-
+        var apiOrigin = new URL(API_URL).origin;
+        useJsonp = apiOrigin !== window.location.origin;
+    } catch (error) {
+        useJsonp = true;
     }
 
-    catch(error){
+    if (useJsonp) {
+        result = await jsonpGet(API_URL + '?qrID=' + encodeURIComponent(qrID));
+    } else {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ qrID })
+        });
 
-        result = {
+        const text = await response.text();
 
-            success: false,
+        try {
+            result = text ? JSON.parse(text) : {};
+        } catch (error) {
+            result = {
+                success: false,
+                message: text || 'Invalid server response'
+            };
+        }
 
-            message: text || "Invalid server response"
-
-        };
-
+        result.__httpStatus = response.status;
     }
 
+    const isLockError = /transaction lock|temporarily|locked|database repository/i.test(`${result.message || ''} ${result.__httpStatus || ''}`);
 
-    const isLockError = /transaction lock|temporarily|locked|database repository/i.test(`${result.message || ""} ${text || ""}`);
-
-
-    if((!response.ok || !result.success) && isLockError && attempt < 3){
-
+    if((result.__httpStatus && result.__httpStatus !== 200 || !result.success) && isLockError && attempt < 3){
         await sleep(1000 * attempt);
-
         return postAttendance(qrID, attempt + 1);
-
     }
 
-
-    if(!response.ok || !result.success){
-
-        throw new Error(result.message || `Unable to record attendance (HTTP ${response.status})`);
-
+    if((result.__httpStatus && result.__httpStatus !== 200) || !result.success){
+        throw new Error(result.message || 'Unable to record attendance');
     }
-
 
     return result;
 
@@ -292,33 +332,24 @@ async function startScanner(){
 
         scanner = new Html5Qrcode("reader");
 
+        const cameras = await Html5Qrcode.getCameras();
+        if (!cameras || cameras.length === 0) {
+            throw new Error('No camera found.');
+        }
+
+        var cameraIdOrConfig = getCameraIdOrConfig(cameras);
 
         await scanner.start(
-
+            cameraIdOrConfig,
             {
-
-                facingMode:"environment"
-
-            },
-
-            {
-
                 fps:10,
-
                 qrbox:{
-
                     width:260,
-
                     height:260
-
                 }
-
             },
-
             onScanSuccess
-
         );
-
 
         showMessage("Ready to Scan...");
 
@@ -377,6 +408,7 @@ async function startScanner(){
 window.onload=function(){
 
     setupApiUrlControl();
-    startScanner();
+    setupStartButton();
+    showMessage('Press Start Scanner to begin and ensure the correct Apps Script endpoint is saved.');
 
 };
