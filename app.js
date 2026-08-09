@@ -113,12 +113,23 @@ function isIosSafari() {
 }
 
 function getCameraIdOrConfig(cameras) {
+    if (!cameras || cameras.length === 0) {
+        return {
+            facingMode: { exact: 'environment' }
+        };
+    }
+
+    const backCamera = cameras.find(camera => /back|rear|environment/i.test(camera.label || ''));
+    if (backCamera && backCamera.id) {
+        return backCamera.id;
+    }
+
     if (isIosSafari()) {
         return cameras[0].id;
     }
 
     return {
-        facingMode: 'environment'
+        facingMode: { exact: 'environment' }
     };
 }
 
