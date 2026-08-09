@@ -1,8 +1,17 @@
 const DEFAULT_API_URL =
-"https://script.google.com/macros/s/AKfycbyunRcLrGqxqZVmsj6BMiMsS4ga1FnO951o7bHS9_OdpySAGqJiX164DCRL1avxLmIK4A/exec";
+"https://script.google.com/macros/s/AKfycbwqbnofxAZ0Xnkv78xPJTMwIQreMzQPoC1vBdun2tEAr5LQUIuNJKoeWvla0CXqDvMpIg/exec";
 
-const API_URL = new URLSearchParams(window.location.search).get("apiUrl") || DEFAULT_API_URL;
+function getConfiguredApiUrl(){
 
+    const params = new URLSearchParams(window.location.search);
+    const fromQuery = params.get("apiUrl");
+    const fromStorage = window.localStorage.getItem("attendanceApiUrl");
+
+    return fromQuery || fromStorage || DEFAULT_API_URL;
+
+}
+
+let API_URL = getConfiguredApiUrl();
 let scanner;
 let busy = false;
 
@@ -10,6 +19,64 @@ let busy = false;
 function showMessage(html){
 
     document.getElementById("result").innerHTML = html;
+
+}
+
+
+function setupApiUrlControl(){
+
+    const input = document.getElementById("apiUrlInput");
+    const button = document.getElementById("saveApiUrlBtn");
+
+    if(!input || !button){
+        return;
+    }
+
+    input.value = API_URL;
+
+    button.addEventListener("click", ()=>{
+
+        const value = input.value.trim();
+
+        if(!value){
+            showMessage(`<div class="error">Please enter an attendance endpoint.</div>`);
+            return;
+        }
+
+        if(/docs\.google\.com\/spreadsheets/i.test(value)){
+
+            showMessage(`
+
+            <div class="error">
+
+            Google Sheets link detected
+
+            </div>
+
+            <br>
+
+            Please use the Google Apps Script Web App URL ending in /exec, not the Google Sheets document link.
+
+            `);
+
+            return;
+
+        }
+
+        API_URL = value;
+        window.localStorage.setItem("attendanceApiUrl", value);
+        showMessage(`<div class="success">Endpoint saved. You can now scan again.</div>`);
+
+    });
+
+    input.addEventListener("keydown", (event)=>{
+
+        if(event.key === "Enter"){
+            event.preventDefault();
+            button.click();
+        }
+
+    });
 
 }
 
@@ -22,6 +89,12 @@ function sleep(ms){
 
 
 async function postAttendance(qrID, attempt = 1){
+
+    if(/docs\.google\.com\/spreadsheets/i.test(API_URL || "")){
+
+        throw new Error("This looks like a Google Sheets document link. Please use the Apps Script Web App URL instead.");
+
+    }
 
     const response = await fetch(API_URL, {
 
@@ -80,7 +153,7 @@ async function postAttendance(qrID, attempt = 1){
 
     if(!response.ok || !result.success){
 
-        throw new Error(result.message || "Unable to record attendance");
+        throw new Error(result.message || `Unable to record attendance (HTTP ${response.status})`);
 
     }
 
@@ -303,6 +376,7 @@ async function startScanner(){
 
 window.onload=function(){
 
+    setupApiUrlControl();
     startScanner();
 
 };
