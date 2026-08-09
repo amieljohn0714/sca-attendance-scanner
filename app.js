@@ -238,7 +238,7 @@ async function onScanSuccess(decodedText){
 
         if(/failed to fetch|network|load failed|fetch/i.test(errorMessage)){
 
-            showConnectionError("The attendance server could not be reached. Make sure the app is opened from a local server or that the API URL is reachable.");
+            showConnectionError("The attendance server could not be reached. For mobile phones, open the Google Apps Script web app directly in the browser and use its deployed /exec URL. A local folder page may be blocked from reaching the endpoint.");
 
         }
 
@@ -281,7 +281,7 @@ async function startScanner(){
 
             <br>
 
-            Open this project from a local server (for example, http://localhost:8000) or check your internet connection.
+            Open the Apps Script web app directly in the browser on your phone or check your internet connection.
 
             `);
 
