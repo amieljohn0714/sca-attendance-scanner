@@ -124,6 +124,15 @@
             return backCamera.id;
         }
 
+        if (cameras.length > 1) {
+            const frontCamera = cameras.find(camera => /front|user/i.test(camera.label || ''));
+            const otherCamera = cameras.find(camera => !/front|user/i.test(camera.label || ''));
+            if (otherCamera && otherCamera.id) {
+                return otherCamera.id;
+            }
+            return cameras[cameras.length - 1].id || cameras[0].id;
+        }
+
         if (isIosSafari()) {
             return cameras[0].id;
         }
