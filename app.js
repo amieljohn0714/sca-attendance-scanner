@@ -1,22 +1,30 @@
 /*
  * ==========================================================
  * SCA-CCP ATTENDANCE SCANNER
- * Scanner Build: OPT-01
+ * Scanner Build: OPT-02B
  * ==========================================================
  *
- * OPT-01 changes:
+ * OPT-02B = DIAGNOSTIC-ONLY BUILD
  *
- * 1. API endpoint is internal and no longer user-editable.
- * 2. Removed API URL query override.
- * 3. Removed API URL localStorage override.
- * 4. Scanner timing starts AFTER camera/scanner is ready.
- * 5. QR scanner FPS reduced from 25 → 15.
- * 6. QR processing box reduced from 70% → 60%.
- * 7. QR_CODE-only detection retained.
- * 8. Existing JSONP/API transport retained.
- * 9. Existing retry behavior retained.
+ * BASE:
+ *   Verified OPT-01
  *
- * DO NOT MODIFY BACKEND FOR THIS BUILD.
+ * IMPORTANT:
+ *   The JSONP transport mechanism is intentionally preserved.
+ *
+ * NO BACKEND CHANGES.
+ *
+ * NO DATABASE CHANGES.
+ *
+ * NO ATTENDANCE LOGIC CHANGES.
+ *
+ * NO ID SERVICE CHANGES.
+ *
+ * NO SCANNER PERFORMANCE CHANGES.
+ *
+ * ONLY ADDITION:
+ *   Detailed timing instrumentation.
+ *
  * ==========================================================
  */
 
@@ -28,7 +36,7 @@
  */
 
 const SCANNER_BUILD =
-    "OPT-01";
+    "OPT-02B";
 
 
 console.log(
@@ -85,6 +93,19 @@ let scanDebugReadyTime = 0;
 let scanDebugDetectedTime = 0;
 
 let scanDebugRequestStartTime = 0;
+
+
+/*
+ * ==========================================================
+ * JSONP DIAGNOSTICS
+ * ==========================================================
+ */
+
+let jsonpDebugStartTime = 0;
+
+let jsonpDebugScriptAppendTime = 0;
+
+let jsonpDebugCallbackTime = 0;
 
 
 /*
@@ -368,6 +389,15 @@ function getCameraIdOrConfig(
  * ==========================================================
  * JSONP TRANSPORT
  * ==========================================================
+ *
+ * IMPORTANT:
+ *
+ * THIS IS THE SAME FUNCTIONAL JSONP ARCHITECTURE
+ * FROM THE VERIFIED OPT-01.
+ *
+ * Only diagnostic timestamps/logging are added.
+ *
+ * ==========================================================
  */
 
 function jsonpGet(
@@ -396,12 +426,77 @@ function jsonpGet(
                 );
 
 
+            /*
+             * ==================================================
+             * JSONP REQUEST CREATED
+             * ==================================================
+             */
+
+            jsonpDebugStartTime =
+                Date.now();
+
+
+            console.log(
+                "[JSONP T1] Request created:",
+                new Date(
+                    jsonpDebugStartTime
+                ).toISOString()
+            );
+
+
             window[
                 callbackName
             ] =
                 function (
                     data
                 ) {
+
+                    /*
+                     * ==========================================
+                     * JSONP CALLBACK RECEIVED
+                     * ==========================================
+                     */
+
+                    jsonpDebugCallbackTime =
+                        Date.now();
+
+
+                    const jsonpSeconds =
+                        (
+
+                            jsonpDebugCallbackTime -
+                            jsonpDebugScriptAppendTime
+
+                        ) / 1000;
+
+
+                    const totalJsonpSeconds =
+                        (
+
+                            jsonpDebugCallbackTime -
+                            jsonpDebugStartTime
+
+                        ) / 1000;
+
+
+                    console.log(
+                        "[JSONP T3] Callback received"
+                    );
+
+
+                    console.log(
+                        "[JSONP] Browser wait:",
+                        jsonpSeconds.toFixed(3) +
+                        "s"
+                    );
+
+
+                    console.log(
+                        "[JSONP] Request lifecycle:",
+                        totalJsonpSeconds.toFixed(3) +
+                        "s"
+                    );
+
 
                     resolve(
                         data
@@ -414,6 +509,11 @@ function jsonpGet(
 
 
                     script.remove();
+
+
+                    console.log(
+                        "[JSONP T4] Callback cleanup complete"
+                    );
 
                 };
 
@@ -434,6 +534,11 @@ function jsonpGet(
             script.onerror =
                 function () {
 
+                    console.error(
+                        "[JSONP ERROR] Network error"
+                    );
+
+
                     delete window[
                         callbackName
                     ];
@@ -449,6 +554,27 @@ function jsonpGet(
                     );
 
                 };
+
+
+            /*
+             * ==================================================
+             * SCRIPT APPENDED
+             * ==================================================
+             */
+
+            jsonpDebugScriptAppendTime =
+                Date.now();
+
+
+            console.log(
+                "[JSONP T2] Script appended"
+            );
+
+
+            console.log(
+                "[JSONP] URL:",
+                url
+            );
 
 
             document.body.appendChild(
@@ -471,6 +597,17 @@ async function postAttendance(
     qrID,
     attempt = 1
 ) {
+
+    console.log(
+        "[API] postAttendance() START"
+    );
+
+
+    console.log(
+        "[API] QRID:",
+        qrID
+    );
+
 
     var result;
 
@@ -500,6 +637,14 @@ async function postAttendance(
             true;
 
     }
+
+
+    console.log(
+        "[API] Transport:",
+        useJsonp
+            ? "JSONP"
+            : "FETCH"
+    );
 
 
     if (
@@ -585,6 +730,17 @@ async function postAttendance(
     }
 
 
+    console.log(
+        "[API] Result received"
+    );
+
+
+    console.log(
+        "[API] Success:",
+        result.success
+    );
+
+
     const isLockError =
         /transaction lock|temporarily|locked|database repository/i.test(
 
@@ -615,6 +771,12 @@ async function postAttendance(
         attempt < 3
 
     ) {
+
+        console.warn(
+            "[API] Transaction lock retry:",
+            attempt + 1
+        );
+
 
         await sleep(
             1000 *
@@ -750,24 +912,7 @@ async function onScanSuccess(
 
     /*
      * ========================================================
-     * ACTUAL QR DETECTION TIME
-     * ========================================================
-     *
-     * IMPORTANT:
-     *
-     * scanDebugReadyTime is recorded only after
-     * scanner.start() has completed.
-     *
-     * Therefore this measurement excludes:
-     *
-     * - camera permission
-     * - camera enumeration
-     * - camera initialization
-     * - scanner startup
-     *
-     * It measures:
-     *
-     * SCANNER READY → QR DETECTED
+     * T0 — QR DETECTED
      * ========================================================
      */
 
@@ -782,6 +927,40 @@ async function onScanSuccess(
             scanDebugReadyTime
 
         ) / 1000;
+
+
+    console.log(
+        "=========================================="
+    );
+
+
+    console.log(
+        "[SCAN T0] QR DETECTED"
+    );
+
+
+    console.log(
+        "[SCAN] BUILD:",
+        SCANNER_BUILD
+    );
+
+
+    console.log(
+        "[SCAN] QR:",
+        qrID
+    );
+
+
+    console.log(
+        "[SCAN] Detection:",
+        detectionSeconds.toFixed(3) +
+        "s"
+    );
+
+
+    console.log(
+        "=========================================="
+    );
 
 
     showMessage(`
@@ -818,7 +997,7 @@ async function onScanSuccess(
 
         /*
          * ====================================================
-         * API REQUEST START
+         * T1 — API REQUEST START
          * ====================================================
          */
 
@@ -833,6 +1012,18 @@ async function onScanSuccess(
                 scanDebugDetectedTime
 
             ) / 1000;
+
+
+        console.log(
+            "[SCAN T1] API REQUEST START"
+        );
+
+
+        console.log(
+            "[SCAN] Delay after QR detection:",
+            requestDelay.toFixed(3) +
+            "s"
+        );
 
 
         showMessage(`
@@ -885,7 +1076,7 @@ async function onScanSuccess(
 
         /*
          * ====================================================
-         * API RESPONSE
+         * T4 — API RESULT RECEIVED
          * ====================================================
          */
 
@@ -915,37 +1106,60 @@ async function onScanSuccess(
             "=========================================="
         );
 
-        console.log(
-            "SCAN COMPLETE"
-        );
 
         console.log(
-            "BUILD:",
+            "[SCAN T4] API RESULT RECEIVED"
+        );
+
+
+        console.log(
+            "[SCAN] BUILD:",
             SCANNER_BUILD
         );
 
+
         console.log(
-            "QR:",
+            "[SCAN] QR:",
             qrID
         );
 
+
         console.log(
-            "QR DETECTION:",
-            detectionSeconds.toFixed(2) +
+            "[SCAN] QR Detection:",
+            detectionSeconds.toFixed(3) +
             "s"
         );
 
+
         console.log(
-            "API REQUEST:",
-            apiSeconds.toFixed(2) +
+            "[SCAN] API Response:",
+            apiSeconds.toFixed(3) +
             "s"
         );
 
+
         console.log(
-            "TOTAL:",
-            totalSeconds.toFixed(2) +
+            "[SCAN] Total:",
+            totalSeconds.toFixed(3) +
             "s"
         );
+
+
+        console.log(
+            "[SCAN] JSONP Browser Wait:",
+            (
+
+                (
+
+                    jsonpDebugCallbackTime -
+                    jsonpDebugScriptAppendTime
+
+                ) / 1000
+
+            ).toFixed(3) +
+            "s"
+        );
+
 
         console.log(
             "=========================================="
@@ -955,6 +1169,16 @@ async function onScanSuccess(
         if (
             result.success
         ) {
+
+            /*
+             * ================================================
+             * T5 — SUCCESS UI
+             * ================================================
+             */
+
+            const uiStartTime =
+                Date.now();
+
 
             showMessage(`
 
@@ -984,7 +1208,7 @@ async function onScanSuccess(
                     <br><br>
 
                     <b>
-                        DIAGNOSTIC
+                        DETAILED DIAGNOSTIC
                     </b>
 
                     <br><br>
@@ -994,8 +1218,25 @@ async function onScanSuccess(
 
                     <br>
 
+                    Request Start Delay:
+                    ${requestDelay.toFixed(2)}s
+
+                    <br>
+
                     Server Response:
                     ${apiSeconds.toFixed(2)}s
+
+                    <br>
+
+                    JSONP Browser Wait:
+                    <b>
+                        ${(
+                            (
+                                jsonpDebugCallbackTime -
+                                jsonpDebugScriptAppendTime
+                            ) / 1000
+                        ).toFixed(2)}s
+                    </b>
 
                     <br>
 
@@ -1007,6 +1248,29 @@ async function onScanSuccess(
                 </small>
 
             `);
+
+
+            const uiEndTime =
+                Date.now();
+
+
+            console.log(
+                "[SCAN T5] SUCCESS UI RENDERED"
+            );
+
+
+            console.log(
+                "[SCAN] UI render:",
+                (
+
+                    (
+                        uiEndTime -
+                        uiStartTime
+                    ) / 1000
+
+                ).toFixed(3) +
+                "s"
+            );
 
         }
 
@@ -1076,6 +1340,34 @@ async function onScanSuccess(
             ) / 1000;
 
 
+        console.error(
+            "=========================================="
+        );
+
+
+        console.error(
+            "[SCAN ERROR]"
+        );
+
+
+        console.error(
+            "[SCAN ERROR MESSAGE]:",
+            errorMessage
+        );
+
+
+        console.error(
+            "[SCAN TOTAL]:",
+            totalSeconds.toFixed(3) +
+            "s"
+        );
+
+
+        console.error(
+            "=========================================="
+        );
+
+
         showConnectionError(`
 
             ${errorMessage}
@@ -1104,6 +1396,16 @@ async function onScanSuccess(
     }
 
     finally {
+
+        /*
+         * ====================================================
+         * PRESERVE OPT-01 BEHAVIOR
+         * ====================================================
+         *
+         * The 2-second busy release is intentionally retained.
+         *
+         * We are NOT optimizing this yet.
+         */
 
         setTimeout(
             function () {
@@ -1215,6 +1517,9 @@ async function startScanner() {
          * ====================================================
          * OPT-01 SCANNER CONFIGURATION
          * ====================================================
+         *
+         * PRESERVED EXACTLY.
+         * ====================================================
          */
 
         await scanner.start(
@@ -1223,25 +1528,9 @@ async function startScanner() {
 
             {
 
-                /*
-                 * Previous:
-                 * 25 FPS
-                 *
-                 * OPT-01:
-                 * 15 FPS
-                 */
-
                 fps:
                     15,
 
-
-                /*
-                 * Previous:
-                 * 70%
-                 *
-                 * OPT-01:
-                 * 60%
-                 */
 
                 qrbox:
                     function (
@@ -1282,10 +1571,6 @@ async function startScanner() {
                     },
 
 
-                /*
-                 * QR ONLY
-                 */
-
                 formatsToSupport: [
 
                     Html5QrcodeSupportedFormats
@@ -1293,10 +1578,6 @@ async function startScanner() {
 
                 ],
 
-
-                /*
-                 * Do not mirror the camera.
-                 */
 
                 disableFlip:
                     true
@@ -1311,9 +1592,6 @@ async function startScanner() {
         /*
          * ====================================================
          * SCANNER READY
-         * ====================================================
-         *
-         * ONLY NOW does the QR timing begin.
          * ====================================================
          */
 
