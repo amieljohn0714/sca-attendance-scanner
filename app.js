@@ -1,24 +1,69 @@
-const DEFAULT_API_URL =
-    "https://script.google.com/macros/s/AKfycbyO5afPbnMP54PlrjHF73v5PWf2Qo-mVmxr9h33FP7s_Flml6DBva8xShp1i395aMB9Vg/exec";
+/*
+ * ==========================================================
+ * SCA-CCP ATTENDANCE SCANNER
+ * Scanner Build: OPT-01
+ * ==========================================================
+ *
+ * OPT-01 changes:
+ *
+ * 1. API endpoint is internal and no longer user-editable.
+ * 2. Removed API URL query override.
+ * 3. Removed API URL localStorage override.
+ * 4. Scanner timing starts AFTER camera/scanner is ready.
+ * 5. QR scanner FPS reduced from 25 → 15.
+ * 6. QR processing box reduced from 70% → 60%.
+ * 7. QR_CODE-only detection retained.
+ * 8. Existing JSONP/API transport retained.
+ * 9. Existing retry behavior retained.
+ *
+ * DO NOT MODIFY BACKEND FOR THIS BUILD.
+ * ==========================================================
+ */
+
+
+/*
+ * ==========================================================
+ * BUILD IDENTIFICATION
+ * ==========================================================
+ */
+
+const SCANNER_BUILD =
+    "OPT-01";
+
+
+console.log(
+    "=========================================="
+);
+
+console.log(
+    "SCA-CCP ATTENDANCE SCANNER"
+);
+
+console.log(
+    "SCANNER BUILD:",
+    SCANNER_BUILD
+);
+
+console.log(
+    "=========================================="
+);
 
 
 /*
  * ==========================================================
  * INTERNAL API CONFIGURATION
  * ==========================================================
- *
- * The endpoint is intentionally NOT exposed in the UI.
- *
- * The scanner is a controlled production client.
- * Users should not modify the Attendance API endpoint.
- *
- * If the deployment URL changes, update this constant
- * and redeploy the scanner.
- * ==========================================================
  */
 
-const API_URL = DEFAULT_API_URL;
+const API_URL =
+    "https://script.google.com/macros/s/AKfycbyO5afPbnMP54PlrjHF73v5PWf2Qo-mVmxr9h33FP7s_Flml6DBva8xShp1i395aMB9Vg/exec";
 
+
+/*
+ * ==========================================================
+ * GLOBAL STATE
+ * ==========================================================
+ */
 
 let scanner;
 
@@ -48,19 +93,48 @@ let scanDebugRequestStartTime = 0;
  * ==========================================================
  */
 
-function showMessage(html) {
+function showMessage(
+    html
+) {
 
     const element =
         document.getElementById(
             "result"
         );
 
+
     if (!element) {
         return;
     }
 
+
     element.innerHTML =
         html;
+
+}
+
+
+/*
+ * ==========================================================
+ * BUILD MARKER
+ * ==========================================================
+ */
+
+function showBuildMarker() {
+
+    const element =
+        document.getElementById(
+            "scannerBuild"
+        );
+
+
+    if (element) {
+
+        element.textContent =
+            "Build: " +
+            SCANNER_BUILD;
+
+    }
 
 }
 
@@ -78,6 +152,7 @@ function setupStartButton() {
             "startScannerBtn"
         );
 
+
     if (!button) {
         return;
     }
@@ -85,7 +160,7 @@ function setupStartButton() {
 
     button.addEventListener(
         "click",
-        () => {
+        function () {
 
             button.disabled =
                 true;
@@ -95,16 +170,20 @@ function setupStartButton() {
 
 
             startScanner()
-                .catch(() => {})
-                .finally(() => {
+                .catch(
+                    function () {}
+                )
+                .finally(
+                    function () {
 
-                    button.disabled =
-                        false;
+                        button.disabled =
+                            false;
 
-                    button.textContent =
-                        "Start Scanner";
+                        button.textContent =
+                            "Start Scanner";
 
-                });
+                    }
+                );
 
         }
     );
@@ -114,18 +193,25 @@ function setupStartButton() {
 
 /*
  * ==========================================================
- * UTILITY
+ * SLEEP
  * ==========================================================
  */
 
-function sleep(ms) {
+function sleep(
+    ms
+) {
 
     return new Promise(
-        resolve =>
+        function (
+            resolve
+        ) {
+
             setTimeout(
                 resolve,
                 ms
-            )
+            );
+
+        }
     );
 
 }
@@ -133,7 +219,7 @@ function sleep(ms) {
 
 /*
  * ==========================================================
- * iOS SAFARI
+ * iOS SAFARI DETECTION
  * ==========================================================
  */
 
@@ -143,10 +229,25 @@ function isIosSafari() {
         navigator.userAgent ||
         "";
 
+
     return (
-        /iP(ad|od|hone)/i.test(ua) &&
-        /Safari/i.test(ua) &&
-        !/CriOS|FxiOS|OPiOS/i.test(ua)
+
+        /iP(ad|od|hone)/i.test(
+            ua
+        )
+
+        &&
+
+        /Safari/i.test(
+            ua
+        )
+
+        &&
+
+        !/CriOS|FxiOS|OPiOS/i.test(
+            ua
+        )
+
     );
 
 }
@@ -168,10 +269,12 @@ function getCameraIdOrConfig(
     ) {
 
         return {
+
             facingMode: {
                 exact:
                     "environment"
             }
+
         };
 
     }
@@ -179,10 +282,15 @@ function getCameraIdOrConfig(
 
     const backCamera =
         cameras.find(
-            camera =>
-                /back|rear|environment/i.test(
+            function (
+                camera
+            ) {
+
+                return /back|rear|environment/i.test(
                     camera.label || ""
-                )
+                );
+
+            }
         );
 
 
@@ -200,21 +308,17 @@ function getCameraIdOrConfig(
         cameras.length > 1
     ) {
 
-        const frontCamera =
-            cameras.find(
-                camera =>
-                    /front|user/i.test(
-                        camera.label || ""
-                    )
-            );
-
-
         const otherCamera =
             cameras.find(
-                camera =>
-                    !/front|user/i.test(
+                function (
+                    camera
+                ) {
+
+                    return !/front|user/i.test(
                         camera.label || ""
-                    )
+                    );
+
+                }
             );
 
 
@@ -232,6 +336,7 @@ function getCameraIdOrConfig(
             cameras[
                 cameras.length - 1
             ].id ||
+
             cameras[0].id
         );
 
@@ -248,10 +353,12 @@ function getCameraIdOrConfig(
 
 
     return {
+
         facingMode: {
             exact:
                 "environment"
         }
+
     };
 
 }
@@ -263,7 +370,9 @@ function getCameraIdOrConfig(
  * ==========================================================
  */
 
-function jsonpGet(url) {
+function jsonpGet(
+    url
+) {
 
     return new Promise(
         function (
@@ -289,28 +398,35 @@ function jsonpGet(url) {
 
             window[
                 callbackName
-            ] = function (
-                data
-            ) {
+            ] =
+                function (
+                    data
+                ) {
 
-                resolve(data);
+                    resolve(
+                        data
+                    );
 
-                delete window[
-                    callbackName
-                ];
 
-                script.remove();
+                    delete window[
+                        callbackName
+                    ];
 
-            };
+
+                    script.remove();
+
+                };
 
 
             script.src =
                 url +
+
                 (
                     url.indexOf("?") === -1
                         ? "?"
                         : "&"
                 ) +
+
                 "callback=" +
                 callbackName;
 
@@ -322,7 +438,9 @@ function jsonpGet(url) {
                         callbackName
                     ];
 
+
                     script.remove();
+
 
                     reject(
                         new Error(
@@ -374,7 +492,9 @@ async function postAttendance(
 
     }
 
-    catch (error) {
+    catch (
+        error
+    ) {
 
         useJsonp =
             true;
@@ -403,19 +523,25 @@ async function postAttendance(
             await fetch(
                 API_URL,
                 {
+
                     method:
                         "POST",
 
                     headers: {
+
                         "Content-Type":
                             "application/json"
+
                     },
 
                     body:
                         JSON.stringify({
+
                             qrID:
                                 qrID
+
                         })
+
                 }
             );
 
@@ -428,12 +554,16 @@ async function postAttendance(
 
             result =
                 text
-                    ? JSON.parse(text)
+                    ? JSON.parse(
+                        text
+                    )
                     : {};
 
         }
 
-        catch (error) {
+        catch (
+            error
+        ) {
 
             result = {
 
@@ -457,19 +587,33 @@ async function postAttendance(
 
     const isLockError =
         /transaction lock|temporarily|locked|database repository/i.test(
+
             `${result.message || ""} ${result.__httpStatus || ""}`
+
         );
 
 
     if (
+
         (
+
             result.__httpStatus &&
             result.__httpStatus !== 200
-        ||
+
+            ||
+
             !result.success
-        ) &&
-        isLockError &&
+
+        )
+
+        &&
+
+        isLockError
+
+        &&
+
         attempt < 3
+
     ) {
 
         await sleep(
@@ -487,11 +631,18 @@ async function postAttendance(
 
 
     if (
+
         (
+
             result.__httpStatus &&
             result.__httpStatus !== 200
-        ) ||
+
+        )
+
+        ||
+
         !result.success
+
     ) {
 
         throw new Error(
@@ -561,13 +712,23 @@ async function onScanSuccess(
 
 
     if (
-        busy ||
+
+        busy
+
+        ||
+
         (
-            qrID === lastScannedQR &&
+
+            qrID === lastScannedQR
+
+            &&
+
             currentTime -
             lastScanTime <
             2500
+
         )
+
     ) {
 
         return;
@@ -589,20 +750,24 @@ async function onScanSuccess(
 
     /*
      * ========================================================
-     * ACTUAL QR DETECTION TIMER
+     * ACTUAL QR DETECTION TIME
      * ========================================================
      *
-     * This starts AFTER the camera has become ready.
+     * IMPORTANT:
+     *
+     * scanDebugReadyTime is recorded only after
+     * scanner.start() has completed.
      *
      * Therefore this measurement excludes:
      *
-     *   - camera permission
-     *   - getCameras()
-     *   - camera initialization
-     *   - scanner.start()
+     * - camera permission
+     * - camera enumeration
+     * - camera initialization
+     * - scanner startup
      *
-     * It measures the actual waiting period from
-     * scanner-ready state until QR detection.
+     * It measures:
+     *
+     * SCANNER READY → QR DETECTED
      * ========================================================
      */
 
@@ -612,8 +777,10 @@ async function onScanSuccess(
 
     const detectionSeconds =
         (
+
             scanDebugDetectedTime -
             scanDebugReadyTime
+
         ) / 1000;
 
 
@@ -621,7 +788,9 @@ async function onScanSuccess(
 
         <div>
 
-            <b>QR DETECTED</b>
+            <b>
+                QR DETECTED
+            </b>
 
             <br><br>
 
@@ -649,13 +818,64 @@ async function onScanSuccess(
 
         /*
          * ====================================================
-         * API REQUEST TIMER
+         * API REQUEST START
          * ====================================================
          */
 
         scanDebugRequestStartTime =
             Date.now();
 
+
+        const requestDelay =
+            (
+
+                scanDebugRequestStartTime -
+                scanDebugDetectedTime
+
+            ) / 1000;
+
+
+        showMessage(`
+
+            <div>
+
+                <b>
+                    QR DETECTED
+                </b>
+
+                <br><br>
+
+                QR:
+                ${qrID}
+
+                <br><br>
+
+                Detection:
+                <b>
+                    ${detectionSeconds.toFixed(2)}s
+                </b>
+
+                <br>
+
+                Request Start:
+                <b>
+                    ${requestDelay.toFixed(2)}s
+                </b>
+
+                <br><br>
+
+                Contacting server...
+
+            </div>
+
+        `);
+
+
+        /*
+         * ====================================================
+         * SEND TO APPS SCRIPT
+         * ====================================================
+         */
 
         const result =
             await postAttendance(
@@ -665,7 +885,7 @@ async function onScanSuccess(
 
         /*
          * ====================================================
-         * API RESPONSE TIMER
+         * API RESPONSE
          * ====================================================
          */
 
@@ -675,16 +895,61 @@ async function onScanSuccess(
 
         const apiSeconds =
             (
+
                 apiResponseTime -
                 scanDebugRequestStartTime
+
             ) / 1000;
 
 
         const totalSeconds =
             (
+
                 apiResponseTime -
                 scanDebugReadyTime
+
             ) / 1000;
+
+
+        console.log(
+            "=========================================="
+        );
+
+        console.log(
+            "SCAN COMPLETE"
+        );
+
+        console.log(
+            "BUILD:",
+            SCANNER_BUILD
+        );
+
+        console.log(
+            "QR:",
+            qrID
+        );
+
+        console.log(
+            "QR DETECTION:",
+            detectionSeconds.toFixed(2) +
+            "s"
+        );
+
+        console.log(
+            "API REQUEST:",
+            apiSeconds.toFixed(2) +
+            "s"
+        );
+
+        console.log(
+            "TOTAL:",
+            totalSeconds.toFixed(2) +
+            "s"
+        );
+
+        console.log(
+            "=========================================="
+        );
 
 
         if (
@@ -710,6 +975,13 @@ async function onScanSuccess(
                 <hr>
 
                 <small>
+
+                    <b>
+                        BUILD:
+                        ${SCANNER_BUILD}
+                    </b>
+
+                    <br><br>
 
                     <b>
                         DIAGNOSTIC
@@ -752,6 +1024,11 @@ async function onScanSuccess(
 
                 <small>
 
+                    BUILD:
+                    ${SCANNER_BUILD}
+
+                    <br><br>
+
                     QR Detection:
                     ${detectionSeconds.toFixed(2)}s
 
@@ -773,13 +1050,17 @@ async function onScanSuccess(
 
     }
 
-    catch (error) {
+    catch (
+        error
+    ) {
 
         const errorMessage =
             error &&
             error.message
                 ? error.message
-                : String(error);
+                : String(
+                    error
+                );
 
 
         const errorTime =
@@ -788,8 +1069,10 @@ async function onScanSuccess(
 
         const totalSeconds =
             (
+
                 errorTime -
                 scanDebugReadyTime
+
             ) / 1000;
 
 
@@ -800,6 +1083,11 @@ async function onScanSuccess(
             <br><br>
 
             <small>
+
+                BUILD:
+                ${SCANNER_BUILD}
+
+                <br><br>
 
                 QR Detection:
                 ${detectionSeconds.toFixed(2)}s
@@ -815,14 +1103,14 @@ async function onScanSuccess(
 
     }
 
-
     finally {
 
         setTimeout(
-            () => {
+            function () {
 
                 busy =
                     false;
+
 
                 showMessage(
                     "Ready to Scan..."
@@ -862,8 +1150,8 @@ async function startScanner() {
 
                 <br>
 
-                Open the scanner page in Safari
-                and check your internet connection.
+                Check your internet connection
+                and reload the scanner.
 
             `);
 
@@ -925,42 +1213,59 @@ async function startScanner() {
 
         /*
          * ====================================================
-         * CAMERA / QR CONFIGURATION
-         * ====================================================
-         *
-         * Optimization test:
-         *
-         *   FPS: 15
-         *   QR box: 60%
-         *
-         * QR_CODE only.
+         * OPT-01 SCANNER CONFIGURATION
          * ====================================================
          */
 
         await scanner.start(
+
             cameraIdOrConfig,
+
             {
+
+                /*
+                 * Previous:
+                 * 25 FPS
+                 *
+                 * OPT-01:
+                 * 15 FPS
+                 */
 
                 fps:
                     15,
 
+
+                /*
+                 * Previous:
+                 * 70%
+                 *
+                 * OPT-01:
+                 * 60%
+                 */
+
                 qrbox:
                     function (
+
                         viewfinderWidth,
                         viewfinderHeight
+
                     ) {
 
                         var minEdge =
                             Math.min(
+
                                 viewfinderWidth,
                                 viewfinderHeight
+
                             );
 
 
                         var boxSize =
                             Math.floor(
+
                                 minEdge *
                                 0.60
+
                             );
 
 
@@ -976,6 +1281,11 @@ async function startScanner() {
 
                     },
 
+
+                /*
+                 * QR ONLY
+                 */
+
                 formatsToSupport: [
 
                     Html5QrcodeSupportedFormats
@@ -983,12 +1293,18 @@ async function startScanner() {
 
                 ],
 
+
+                /*
+                 * Do not mirror the camera.
+                 */
+
                 disableFlip:
                     true
 
             },
 
             onScanSuccess
+
         );
 
 
@@ -997,8 +1313,7 @@ async function startScanner() {
          * SCANNER READY
          * ====================================================
          *
-         * IMPORTANT:
-         * The QR detection timer begins HERE.
+         * ONLY NOW does the QR timing begin.
          * ====================================================
          */
 
@@ -1007,22 +1322,53 @@ async function startScanner() {
 
 
         console.log(
-            "[SCANNER READY]",
-            new Date().toISOString()
+            "[SCANNER READY]"
         );
 
 
-        showMessage(
-            "Ready to Scan..."
+        console.log(
+            "BUILD:",
+            SCANNER_BUILD
         );
+
+
+        console.log(
+            "QR TIMER STARTED"
+        );
+
+
+        showMessage(`
+
+            <div>
+
+                <b>
+                    Ready to Scan
+                </b>
+
+                <br><br>
+
+                <small>
+
+                    Build:
+                    ${SCANNER_BUILD}
+
+                </small>
+
+            </div>
+
+        `);
 
     }
 
 
-    catch (error) {
+    catch (
+        error
+    ) {
 
         const errorText =
-            String(error);
+            String(
+                error
+            );
 
 
         if (
@@ -1042,7 +1388,7 @@ async function startScanner() {
                 <br>
 
                 Allow camera permission and
-                open the scanner from a secure address.
+                reload the scanner.
 
             `);
 
@@ -1087,9 +1433,30 @@ window.onload =
 
         setupStartButton();
 
+        showBuildMarker();
 
-        showMessage(
-            "Press Start Scanner to begin."
-        );
+
+        showMessage(`
+
+            <div>
+
+                Press
+                <b>
+                    Start Scanner
+                </b>
+                to begin.
+
+                <br><br>
+
+                <small>
+
+                    Build:
+                    ${SCANNER_BUILD}
+
+                </small>
+
+            </div>
+
+        `);
 
     };
