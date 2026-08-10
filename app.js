@@ -381,11 +381,15 @@
 
             var cameraIdOrConfig = getCameraIdOrConfig(cameras);
 
-    await scanner.start(
-         cameraIdOrConfig,
+await scanner.start(
+    cameraIdOrConfig,
     {
-        fps: 15,
-        qrbox: function (viewfinderWidth, viewfinderHeight) {
+        fps: 20,
+
+        qrbox: function (
+            viewfinderWidth,
+            viewfinderHeight
+        ) {
 
             var minEdge = Math.min(
                 viewfinderWidth,
@@ -393,14 +397,20 @@
             );
 
             var boxSize = Math.floor(
-                minEdge * 0.65
+                minEdge * 0.55
             );
 
             return {
                 width: boxSize,
                 height: boxSize
             };
-        }
+        },
+
+        formatsToSupport: [
+            Html5QrcodeSupportedFormats.QR_CODE
+        ],
+
+        disableFlip: true
     },
     onScanSuccess
 );
