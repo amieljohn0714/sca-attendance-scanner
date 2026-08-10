@@ -1,30 +1,22 @@
 /*
  * ==========================================================
  * SCA-CCP ATTENDANCE SCANNER
- * Scanner Build: OPT-02
+ * Scanner Build: OPT-01
  * ==========================================================
  *
- * OPT-02 — API / CLIENT TRANSPORT OPTIMIZATION
+ * OPT-01 changes:
  *
- * Based directly on the verified OPT-01 scanner.
+ * 1. API endpoint is internal and no longer user-editable.
+ * 2. Removed API URL query override.
+ * 3. Removed API URL localStorage override.
+ * 4. Scanner timing starts AFTER camera/scanner is ready.
+ * 5. QR scanner FPS reduced from 25 → 15.
+ * 6. QR processing box reduced from 70% → 60%.
+ * 7. QR_CODE-only detection retained.
+ * 8. Existing JSONP/API transport retained.
+ * 9. Existing retry behavior retained.
  *
- * Changes:
- *
- * 1. API endpoint remains internal.
- * 2. JSONP remains available for cross-origin operation.
- * 3. JSONP now has a timeout and guaranteed cleanup.
- * 4. Apps Script connection preconnect hints are added.
- * 5. API transport mode is determined once.
- * 6. Artificial 2-second post-response busy delay removed.
- * 7. Existing 2.5-second same-QR duplicate protection retained.
- * 8. QR-only detection retained.
- * 9. 15 FPS retained for controlled comparison.
- * 10. 60% QR processing box retained for controlled comparison.
- * 11. Existing transaction-lock retry behavior retained.
- * 12. Backend is NOT modified by this build.
- *
- * IMPORTANT:
- * This build is intended to measure CLIENT/API behavior.
+ * DO NOT MODIFY BACKEND FOR THIS BUILD.
  * ==========================================================
  */
 
@@ -36,7 +28,7 @@
  */
 
 const SCANNER_BUILD =
-    "OPT-02";
+    "OPT-01";
 
 
 console.log(
@@ -69,24 +61,11 @@ const API_URL =
 
 /*
  * ==========================================================
- * API CONFIGURATION
- * ==========================================================
- */
-
-const JSONP_TIMEOUT_MS =
-    15000;
-
-const LOCK_RETRY_LIMIT =
-    3;
-
-
-/*
- * ==========================================================
  * GLOBAL STATE
  * ==========================================================
  */
 
-let scanner = null;
+let scanner;
 
 let busy = false;
 
@@ -97,28 +76,15 @@ let lastScanTime = 0;
 
 /*
  * ==========================================================
- * TRANSPORT STATE
- * ==========================================================
- */
-
-let useJsonpTransport =
-    true;
-
-
-/*
- * ==========================================================
  * SCANNER DIAGNOSTICS
  * ==========================================================
  */
 
-let scanDebugReadyTime =
-    0;
+let scanDebugReadyTime = 0;
 
-let scanDebugDetectedTime =
-    0;
+let scanDebugDetectedTime = 0;
 
-let scanDebugRequestStartTime =
-    0;
+let scanDebugRequestStartTime = 0;
 
 
 /*
@@ -138,9 +104,7 @@ function showMessage(
 
 
     if (!element) {
-
         return;
-
     }
 
 
@@ -177,126 +141,6 @@ function showBuildMarker() {
 
 /*
  * ==========================================================
- * PRECONNECT
- * ==========================================================
- *
- * This does not call the attendance endpoint.
- *
- * It only gives the browser permission to prepare
- * the connection to the Apps Script infrastructure.
- *
- * This is safe because no Attendance operation is invoked.
- * ==========================================================
- */
-
-function setupPreconnect() {
-
-    const origins = [
-
-        "https://script.google.com",
-
-        "https://script.googleusercontent.com"
-
-    ];
-
-
-    origins.forEach(
-        function (
-            origin
-        ) {
-
-            const existing =
-                document.querySelector(
-                    'link[rel="preconnect"][href="' +
-                    origin +
-                    '"]'
-                );
-
-
-            if (existing) {
-
-                return;
-
-            }
-
-
-            const link =
-                document.createElement(
-                    "link"
-                );
-
-
-            link.rel =
-                "preconnect";
-
-            link.href =
-                origin;
-
-            link.crossOrigin =
-                "";
-
-
-            document.head.appendChild(
-                link
-            );
-
-        }
-    );
-
-}
-
-
-/*
- * ==========================================================
- * TRANSPORT DETECTION
- * ==========================================================
- */
-
-function determineTransport() {
-
-    try {
-
-        const apiOrigin =
-            new URL(
-                API_URL
-            ).origin;
-
-
-        useJsonpTransport =
-            apiOrigin !==
-            window.location.origin;
-
-    }
-
-    catch (
-        error
-    ) {
-
-        /*
-         * Safe fallback.
-         *
-         * Apps Script endpoint is expected to be
-         * cross-origin from a normal scanner page.
-         */
-
-        useJsonpTransport =
-            true;
-
-    }
-
-
-    console.log(
-        "[TRANSPORT]",
-        useJsonpTransport
-            ? "JSONP"
-            : "FETCH"
-    );
-
-}
-
-
-/*
- * ==========================================================
  * START BUTTON
  * ==========================================================
  */
@@ -310,9 +154,7 @@ function setupStartButton() {
 
 
     if (!button) {
-
         return;
-
     }
 
 
@@ -429,10 +271,8 @@ function getCameraIdOrConfig(
         return {
 
             facingMode: {
-
                 exact:
                     "environment"
-
             }
 
         };
@@ -493,13 +333,11 @@ function getCameraIdOrConfig(
 
 
         return (
-
             cameras[
                 cameras.length - 1
             ].id ||
 
             cameras[0].id
-
         );
 
     }
@@ -517,10 +355,8 @@ function getCameraIdOrConfig(
     return {
 
         facingMode: {
-
             exact:
                 "environment"
-
         }
 
     };
@@ -531,15 +367,6 @@ function getCameraIdOrConfig(
 /*
  * ==========================================================
  * JSONP TRANSPORT
- * ==========================================================
- *
- * OPT-02:
- *
- * - Timeout protection
- * - Cleanup on success
- * - Cleanup on error
- * - Cleanup on timeout
- * - No orphaned callbacks
  * ==========================================================
  */
 
@@ -559,7 +386,7 @@ function jsonpGet(
                 "_" +
                 Math.floor(
                     Math.random() *
-                    100000
+                    10000
                 );
 
 
@@ -569,107 +396,6 @@ function jsonpGet(
                 );
 
 
-            var finished =
-                false;
-
-
-            var timeoutId =
-                null;
-
-
-            function cleanup() {
-
-                if (
-                    timeoutId !== null
-                ) {
-
-                    clearTimeout(
-                        timeoutId
-                    );
-
-                    timeoutId =
-                        null;
-
-                }
-
-
-                try {
-
-                    delete window[
-                        callbackName
-                    ];
-
-                }
-
-                catch (
-                    ignored
-                ) {}
-
-
-                if (
-                    script &&
-                    script.parentNode
-                ) {
-
-                    script.parentNode.removeChild(
-                        script
-                    );
-
-                }
-
-            }
-
-
-            function finishSuccess(
-                data
-            ) {
-
-                if (finished) {
-
-                    return;
-
-                }
-
-
-                finished =
-                    true;
-
-
-                cleanup();
-
-
-                resolve(
-                    data
-                );
-
-            }
-
-
-            function finishError(
-                error
-            ) {
-
-                if (finished) {
-
-                    return;
-
-                }
-
-
-                finished =
-                    true;
-
-
-                cleanup();
-
-
-                reject(
-                    error
-                );
-
-            }
-
-
             window[
                 callbackName
             ] =
@@ -677,15 +403,19 @@ function jsonpGet(
                     data
                 ) {
 
-                    finishSuccess(
+                    resolve(
                         data
                     );
 
+
+                    delete window[
+                        callbackName
+                    ];
+
+
+                    script.remove();
+
                 };
-
-
-            script.async =
-                true;
 
 
             script.src =
@@ -698,45 +428,27 @@ function jsonpGet(
                 ) +
 
                 "callback=" +
-                encodeURIComponent(
-                    callbackName
-                );
+                callbackName;
 
 
             script.onerror =
                 function () {
 
-                    finishError(
+                    delete window[
+                        callbackName
+                    ];
 
+
+                    script.remove();
+
+
+                    reject(
                         new Error(
                             "Network error while calling Apps Script endpoint."
                         )
-
                     );
 
                 };
-
-
-            timeoutId =
-                setTimeout(
-                    function () {
-
-                        finishError(
-
-                            new Error(
-                                "Apps Script request timed out after " +
-                                (
-                                    JSONP_TIMEOUT_MS /
-                                    1000
-                                ) +
-                                " seconds."
-                            )
-
-                        );
-
-                    },
-                    JSONP_TIMEOUT_MS
-                );
 
 
             document.body.appendChild(
@@ -762,36 +474,48 @@ async function postAttendance(
 
     var result;
 
+    var useJsonp =
+        true;
 
-    /*
-     * --------------------------------------------------------
-     * JSONP
-     * --------------------------------------------------------
-     */
+
+    try {
+
+        var apiOrigin =
+            new URL(
+                API_URL
+            ).origin;
+
+
+        useJsonp =
+            apiOrigin !==
+            window.location.origin;
+
+    }
+
+    catch (
+        error
+    ) {
+
+        useJsonp =
+            true;
+
+    }
+
 
     if (
-        useJsonpTransport
+        useJsonp
     ) {
 
         result =
             await jsonpGet(
-
                 API_URL +
                 "?qrID=" +
                 encodeURIComponent(
                     qrID
                 )
-
             );
 
     }
-
-
-    /*
-     * --------------------------------------------------------
-     * SAME-ORIGIN FETCH
-     * --------------------------------------------------------
-     */
 
     else {
 
@@ -861,12 +585,6 @@ async function postAttendance(
     }
 
 
-    /*
-     * --------------------------------------------------------
-     * LOCK / TEMPORARY ERROR DETECTION
-     * --------------------------------------------------------
-     */
-
     const isLockError =
         /transaction lock|temporarily|locked|database repository/i.test(
 
@@ -875,28 +593,18 @@ async function postAttendance(
         );
 
 
-    /*
-     * --------------------------------------------------------
-     * RETRY ONLY FOR LOCK/TEMPORARY CONDITIONS
-     * --------------------------------------------------------
-     */
+    if (
 
-    const failedRequest =
         (
 
             result.__httpStatus &&
             result.__httpStatus !== 200
 
+            ||
+
+            !result.success
+
         )
-
-        ||
-
-        !result.success;
-
-
-    if (
-
-        failedRequest
 
         &&
 
@@ -904,16 +612,9 @@ async function postAttendance(
 
         &&
 
-        attempt < LOCK_RETRY_LIMIT
+        attempt < 3
 
     ) {
-
-        console.warn(
-            "[API RETRY]",
-            "Attempt:",
-            attempt + 1
-        );
-
 
         await sleep(
             1000 *
@@ -929,14 +630,19 @@ async function postAttendance(
     }
 
 
-    /*
-     * --------------------------------------------------------
-     * FINAL FAILURE
-     * --------------------------------------------------------
-     */
-
     if (
-        failedRequest
+
+        (
+
+            result.__httpStatus &&
+            result.__httpStatus !== 200
+
+        )
+
+        ||
+
+        !result.success
+
     ) {
 
         throw new Error(
@@ -997,26 +703,13 @@ async function onScanSuccess(
 
 
     if (!qrID) {
-
         return;
-
     }
 
 
     const currentTime =
         Date.now();
 
-
-    /*
-     * --------------------------------------------------------
-     * DUPLICATE / BUSY PROTECTION
-     * --------------------------------------------------------
-     *
-     * Same QR within 2.5 seconds is ignored.
-     *
-     * This replaces the previous artificial 2-second
-     * post-response lock as the primary duplicate guard.
-     */
 
     if (
 
@@ -1057,7 +750,24 @@ async function onScanSuccess(
 
     /*
      * ========================================================
-     * QR DETECTION DIAGNOSTIC
+     * ACTUAL QR DETECTION TIME
+     * ========================================================
+     *
+     * IMPORTANT:
+     *
+     * scanDebugReadyTime is recorded only after
+     * scanner.start() has completed.
+     *
+     * Therefore this measurement excludes:
+     *
+     * - camera permission
+     * - camera enumeration
+     * - camera initialization
+     * - scanner startup
+     *
+     * It measures:
+     *
+     * SCANNER READY → QR DETECTED
      * ========================================================
      */
 
@@ -1089,14 +799,15 @@ async function onScanSuccess(
 
             <br><br>
 
-            Detection:
+            Detection Time:
             <b>
-                ${detectionSeconds.toFixed(2)}s
+                ${detectionSeconds.toFixed(2)}
+                seconds
             </b>
 
             <br><br>
 
-            Contacting server...
+            Sending to server...
 
         </div>
 
@@ -1113,6 +824,51 @@ async function onScanSuccess(
 
         scanDebugRequestStartTime =
             Date.now();
+
+
+        const requestDelay =
+            (
+
+                scanDebugRequestStartTime -
+                scanDebugDetectedTime
+
+            ) / 1000;
+
+
+        showMessage(`
+
+            <div>
+
+                <b>
+                    QR DETECTED
+                </b>
+
+                <br><br>
+
+                QR:
+                ${qrID}
+
+                <br><br>
+
+                Detection:
+                <b>
+                    ${detectionSeconds.toFixed(2)}s
+                </b>
+
+                <br>
+
+                Request Start:
+                <b>
+                    ${requestDelay.toFixed(2)}s
+                </b>
+
+                <br><br>
+
+                Contacting server...
+
+            </div>
+
+        `);
 
 
         /*
@@ -1169,13 +925,6 @@ async function onScanSuccess(
         );
 
         console.log(
-            "TRANSPORT:",
-            useJsonpTransport
-                ? "JSONP"
-                : "FETCH"
-        );
-
-        console.log(
             "QR:",
             qrID
         );
@@ -1202,12 +951,6 @@ async function onScanSuccess(
             "=========================================="
         );
 
-
-        /*
-         * ====================================================
-         * SUCCESS
-         * ====================================================
-         */
 
         if (
             result.success
@@ -1236,17 +979,6 @@ async function onScanSuccess(
                     <b>
                         BUILD:
                         ${SCANNER_BUILD}
-                    </b>
-
-                    <br>
-
-                    <b>
-                        TRANSPORT:
-                        ${
-                            useJsonpTransport
-                                ? "JSONP"
-                                : "FETCH"
-                        }
                     </b>
 
                     <br><br>
@@ -1278,21 +1010,13 @@ async function onScanSuccess(
 
         }
 
-
-        /*
-         * ====================================================
-         * SERVER-SIDE FAILURE
-         * ====================================================
-         */
-
         else {
 
             showMessage(`
 
                 <div class="error">
 
-                    ❌
-                    ${result.message}
+                    ❌ ${result.message}
 
                 </div>
 
@@ -1326,7 +1050,6 @@ async function onScanSuccess(
 
     }
 
-
     catch (
         error
     ) {
@@ -1353,12 +1076,6 @@ async function onScanSuccess(
             ) / 1000;
 
 
-        console.error(
-            "[SCAN ERROR]",
-            error
-        );
-
-
         showConnectionError(`
 
             ${errorMessage}
@@ -1369,15 +1086,6 @@ async function onScanSuccess(
 
                 BUILD:
                 ${SCANNER_BUILD}
-
-                <br><br>
-
-                TRANSPORT:
-                ${
-                    useJsonpTransport
-                        ? "JSONP"
-                        : "FETCH"
-                }
 
                 <br><br>
 
@@ -1395,29 +1103,21 @@ async function onScanSuccess(
 
     }
 
-
     finally {
 
-        /*
-         * IMPORTANT:
-         *
-         * OPT-01 had an additional 2-second delay here.
-         *
-         * OPT-02 removes that artificial delay.
-         *
-         * Duplicate protection is still maintained through:
-         *
-         *   lastScannedQR
-         *   lastScanTime
-         *   2500 ms window
-         */
+        setTimeout(
+            function () {
 
-        busy =
-            false;
+                busy =
+                    false;
 
 
-        showMessage(
-            "Ready to Scan..."
+                showMessage(
+                    "Ready to Scan..."
+                );
+
+            },
+            2000
         );
 
     }
@@ -1475,9 +1175,7 @@ async function startScanner() {
                 <br><br>
 
                 <small>
-
                     Preparing scanner...
-
                 </small>
 
             </div>
@@ -1507,7 +1205,7 @@ async function startScanner() {
         }
 
 
-        const cameraIdOrConfig =
+        var cameraIdOrConfig =
             getCameraIdOrConfig(
                 cameras
             );
@@ -1515,11 +1213,8 @@ async function startScanner() {
 
         /*
          * ====================================================
-         * OPT-02 SCANNER CONFIGURATION
+         * OPT-01 SCANNER CONFIGURATION
          * ====================================================
-         *
-         * Keep the same scanner settings as OPT-01
-         * so this test isolates API/client changes.
          */
 
         await scanner.start(
@@ -1528,9 +1223,25 @@ async function startScanner() {
 
             {
 
+                /*
+                 * Previous:
+                 * 25 FPS
+                 *
+                 * OPT-01:
+                 * 15 FPS
+                 */
+
                 fps:
                     15,
 
+
+                /*
+                 * Previous:
+                 * 70%
+                 *
+                 * OPT-01:
+                 * 60%
+                 */
 
                 qrbox:
                     function (
@@ -1540,7 +1251,7 @@ async function startScanner() {
 
                     ) {
 
-                        const minEdge =
+                        var minEdge =
                             Math.min(
 
                                 viewfinderWidth,
@@ -1549,7 +1260,7 @@ async function startScanner() {
                             );
 
 
-                        const boxSize =
+                        var boxSize =
                             Math.floor(
 
                                 minEdge *
@@ -1571,6 +1282,10 @@ async function startScanner() {
                     },
 
 
+                /*
+                 * QR ONLY
+                 */
+
                 formatsToSupport: [
 
                     Html5QrcodeSupportedFormats
@@ -1578,6 +1293,10 @@ async function startScanner() {
 
                 ],
 
+
+                /*
+                 * Do not mirror the camera.
+                 */
 
                 disableFlip:
                     true
@@ -1594,8 +1313,8 @@ async function startScanner() {
          * SCANNER READY
          * ====================================================
          *
-         * QR timing begins only after scanner.start()
-         * completes.
+         * ONLY NOW does the QR timing begin.
+         * ====================================================
          */
 
         scanDebugReadyTime =
@@ -1610,14 +1329,6 @@ async function startScanner() {
         console.log(
             "BUILD:",
             SCANNER_BUILD
-        );
-
-
-        console.log(
-            "TRANSPORT:",
-            useJsonpTransport
-                ? "JSONP"
-                : "FETCH"
         );
 
 
@@ -1640,15 +1351,6 @@ async function startScanner() {
 
                     Build:
                     ${SCANNER_BUILD}
-
-                    <br>
-
-                    Transport:
-                    ${
-                        useJsonpTransport
-                            ? "JSONP"
-                            : "FETCH"
-                    }
 
                 </small>
 
@@ -1729,10 +1431,6 @@ async function startScanner() {
 window.onload =
     function () {
 
-        setupPreconnect();
-
-        determineTransport();
-
         setupStartButton();
 
         showBuildMarker();
@@ -1754,15 +1452,6 @@ window.onload =
 
                     Build:
                     ${SCANNER_BUILD}
-
-                    <br>
-
-                    Transport:
-                    ${
-                        useJsonpTransport
-                            ? "JSONP"
-                            : "FETCH"
-                    }
 
                 </small>
 
