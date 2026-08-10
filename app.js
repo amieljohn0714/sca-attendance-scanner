@@ -17,6 +17,10 @@
     let lastScannedQR = "";
     let lastScanTime = 0;
 
+    let scanDebugStartTime = 0;
+    let scanDebugDetectedTime = 0;
+    let scanDebugRequestStartTime = 0;
+
 
     function showMessage(html){
 
@@ -247,6 +251,21 @@
 
     const qrID = String(decodedText || "").trim();
 
+    scanDebugDetectedTime = Date.now();
+
+console.log(
+    "[QR DETECTED]",
+    new Date().toISOString(),
+    "QR:",
+    qrID,
+    "Detection time:",
+    (
+        scanDebugDetectedTime -
+        scanDebugStartTime
+    ) / 1000,
+    "seconds"
+);
+
     if (!qrID) {
         return;
     }
@@ -269,7 +288,40 @@
 
     try {
 
+scanDebugRequestStartTime = Date.now();
+
+console.log(
+    "[API REQUEST START]",
+    new Date().toISOString(),
+    "Time from QR detection:",
+    (
+        scanDebugRequestStartTime -
+        scanDebugDetectedTime
+    ) / 1000,
+    "seconds"
+);
+
         const result = await postAttendance(qrID);
+
+        const apiResponseTime = Date.now();
+
+console.log(
+    "[API RESPONSE]",
+    new Date().toISOString(),
+    "API time:",
+    (
+        apiResponseTime -
+        scanDebugRequestStartTime
+    ) / 1000,
+    "seconds",
+    "Total time:",
+    (
+        apiResponseTime -
+        scanDebugStartTime
+    ) / 1000,
+    "seconds",
+    result
+);
 
         if (result.success) {
 
@@ -373,6 +425,13 @@
 
 
             scanner = new Html5Qrcode("reader");
+        
+scanDebugStartTime = Date.now();
+
+console.log(
+    "[SCANNER START]",
+    new Date().toISOString()
+);
 
             const cameras = await Html5Qrcode.getCameras();
             if (!cameras || cameras.length === 0) {
@@ -384,7 +443,7 @@
 await scanner.start(
     cameraIdOrConfig,
     {
-        fps: 20,
+        fps: 25,
 
         qrbox: function (
             viewfinderWidth,
@@ -397,7 +456,7 @@ await scanner.start(
             );
 
             var boxSize = Math.floor(
-                minEdge * 0.55
+                minEdge * 0.70
             );
 
             return {
