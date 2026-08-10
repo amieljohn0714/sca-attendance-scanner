@@ -247,24 +247,9 @@
 
     }
 
-   async function onScanSuccess(decodedText) {
+async function onScanSuccess(decodedText) {
 
     const qrID = String(decodedText || "").trim();
-
-    scanDebugDetectedTime = Date.now();
-
-console.log(
-    "[QR DETECTED]",
-    new Date().toISOString(),
-    "QR:",
-    qrID,
-    "Detection time:",
-    (
-        scanDebugDetectedTime -
-        scanDebugStartTime
-    ) / 1000,
-    "seconds"
-);
 
     if (!qrID) {
         return;
@@ -286,42 +271,109 @@ console.log(
     lastScannedQR = qrID;
     lastScanTime = currentTime;
 
+    // ==========================================
+    // QR DETECTION DIAGNOSTIC
+    // ==========================================
+
+    scanDebugDetectedTime = Date.now();
+
+    const detectionSeconds =
+        (
+            scanDebugDetectedTime -
+            scanDebugStartTime
+        ) / 1000;
+
+    showMessage(`
+
+        <div>
+
+            <b>QR DETECTED</b>
+
+            <br><br>
+
+            QR:
+            ${qrID}
+
+            <br><br>
+
+            Detection Time:
+            <b>${detectionSeconds.toFixed(2)} seconds</b>
+
+            <br><br>
+
+            Sending to server...
+
+        </div>
+
+    `);
+
     try {
 
-scanDebugRequestStartTime = Date.now();
+        // ==========================================
+        // API REQUEST DIAGNOSTIC
+        // ==========================================
 
-console.log(
-    "[API REQUEST START]",
-    new Date().toISOString(),
-    "Time from QR detection:",
-    (
-        scanDebugRequestStartTime -
-        scanDebugDetectedTime
-    ) / 1000,
-    "seconds"
-);
+        scanDebugRequestStartTime = Date.now();
 
-        const result = await postAttendance(qrID);
+        const requestDelay =
+            (
+                scanDebugRequestStartTime -
+                scanDebugDetectedTime
+            ) / 1000;
+
+        showMessage(`
+
+            <div>
+
+                <b>QR DETECTED</b>
+
+                <br><br>
+
+                QR:
+                ${qrID}
+
+                <br><br>
+
+                Detection:
+                <b>${detectionSeconds.toFixed(2)}s</b>
+
+                <br>
+
+                Request Start:
+                <b>${requestDelay.toFixed(2)}s</b>
+
+                <br><br>
+
+                <b>Contacting server...</b>
+
+            </div>
+
+        `);
+
+        // ==========================================
+        // SEND TO APPS SCRIPT
+        // ==========================================
+
+        const result =
+            await postAttendance(qrID);
+
+        // ==========================================
+        // API RESPONSE DIAGNOSTIC
+        // ==========================================
 
         const apiResponseTime = Date.now();
 
-console.log(
-    "[API RESPONSE]",
-    new Date().toISOString(),
-    "API time:",
-    (
-        apiResponseTime -
-        scanDebugRequestStartTime
-    ) / 1000,
-    "seconds",
-    "Total time:",
-    (
-        apiResponseTime -
-        scanDebugStartTime
-    ) / 1000,
-    "seconds",
-    result
-);
+        const apiSeconds =
+            (
+                apiResponseTime -
+                scanDebugRequestStartTime
+            ) / 1000;
+
+        const totalSeconds =
+            (
+                apiResponseTime -
+                scanDebugStartTime
+            ) / 1000;
 
         if (result.success) {
 
@@ -329,7 +381,7 @@ console.log(
 
                 <div class="success">
 
-                    ✅ Attendance Recorded
+                    <b>✅ Attendance Recorded</b>
 
                 </div>
 
@@ -337,9 +389,36 @@ console.log(
 
                 ${result.message}
 
+                <br><br>
+
+                <hr>
+
+                <small>
+
+                    <b>DIAGNOSTIC</b>
+
+                    <br><br>
+
+                    QR Detection:
+                    ${detectionSeconds.toFixed(2)}s
+
+                    <br>
+
+                    Server Response:
+                    ${apiSeconds.toFixed(2)}s
+
+                    <br>
+
+                    Total:
+                    <b>${totalSeconds.toFixed(2)}s</b>
+
+                </small>
+
             `);
 
-        } else {
+        }
+
+        else {
 
             showMessage(`
 
@@ -348,6 +427,25 @@ console.log(
                     ❌ ${result.message}
 
                 </div>
+
+                <br>
+
+                <small>
+
+                    QR Detection:
+                    ${detectionSeconds.toFixed(2)}s
+
+                    <br>
+
+                    Server Response:
+                    ${apiSeconds.toFixed(2)}s
+
+                    <br>
+
+                    Total:
+                    ${totalSeconds.toFixed(2)}s
+
+                </small>
 
             `);
 
@@ -362,24 +460,33 @@ console.log(
                 ? error.message
                 : String(error);
 
-        if (
-            /failed to fetch|network|load failed|fetch/i
-                .test(errorMessage)
-        ) {
+        const errorTime = Date.now();
 
-            showConnectionError(
-                "The attendance server could not be reached."
-            );
+        const totalSeconds =
+            (
+                errorTime -
+                scanDebugStartTime
+            ) / 1000;
 
-        }
+        showConnectionError(`
 
-        else {
+            ${errorMessage}
 
-            showConnectionError(
-                errorMessage
-            );
+            <br><br>
 
-        }
+            <small>
+
+                QR Detection:
+                ${detectionSeconds.toFixed(2)}s
+
+                <br>
+
+                Total:
+                ${totalSeconds.toFixed(2)}s
+
+            </small>
+
+        `);
 
     }
 
@@ -432,6 +539,16 @@ console.log(
     "[SCANNER START]",
     new Date().toISOString()
 );
+
+showMessage(`
+    <div>
+        Camera started.
+        <br><br>
+        <small>
+            Waiting for QR detection...
+        </small>
+    </div>
+`);
 
             const cameras = await Html5Qrcode.getCameras();
             if (!cameras || cameras.length === 0) {
