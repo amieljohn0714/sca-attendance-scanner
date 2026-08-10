@@ -3,45 +3,24 @@ const DEFAULT_API_URL =
 
 
 /*
-==================================================
-API CONFIGURATION
-==================================================
-*/
+ * ==========================================================
+ * INTERNAL API CONFIGURATION
+ * ==========================================================
+ *
+ * The endpoint is intentionally NOT exposed in the UI.
+ *
+ * The scanner is a controlled production client.
+ * Users should not modify the Attendance API endpoint.
+ *
+ * If the deployment URL changes, update this constant
+ * and redeploy the scanner.
+ * ==========================================================
+ */
 
-function getConfiguredApiUrl() {
-
-    const params =
-        new URLSearchParams(
-            window.location.search
-        );
-
-    const fromQuery =
-        params.get("apiUrl");
-
-    const fromStorage =
-        window.localStorage.getItem(
-            "attendanceApiUrlV5"
-        );
-
-    return (
-        fromQuery ||
-        fromStorage ||
-        DEFAULT_API_URL
-    );
-}
+const API_URL = DEFAULT_API_URL;
 
 
-let API_URL =
-    getConfiguredApiUrl();
-
-
-/*
-==================================================
-SCANNER STATE
-==================================================
-*/
-
-let scanner = null;
+let scanner;
 
 let busy = false;
 
@@ -51,12 +30,12 @@ let lastScanTime = 0;
 
 
 /*
-==================================================
-DIAGNOSTIC STATE
-==================================================
-*/
+ * ==========================================================
+ * SCANNER DIAGNOSTICS
+ * ==========================================================
+ */
 
-let scanDebugStartTime = 0;
+let scanDebugReadyTime = 0;
 
 let scanDebugDetectedTime = 0;
 
@@ -64,156 +43,33 @@ let scanDebugRequestStartTime = 0;
 
 
 /*
-==================================================
-DISPLAY
-==================================================
-*/
+ * ==========================================================
+ * UI HELPER
+ * ==========================================================
+ */
 
 function showMessage(html) {
 
-    const result =
+    const element =
         document.getElementById(
             "result"
         );
 
-    if (result) {
-
-        result.innerHTML = html;
-
-    }
-
-}
-
-
-/*
-==================================================
-API URL CONTROL
-==================================================
-*/
-
-function setupApiUrlControl() {
-
-    const input =
-        document.getElementById(
-            "apiUrlInput"
-        );
-
-    const button =
-        document.getElementById(
-            "saveApiUrlBtn"
-        );
-
-    if (!input || !button) {
-
+    if (!element) {
         return;
-
     }
 
-
-    input.value = API_URL;
-
-
-    button.addEventListener(
-        "click",
-        () => {
-
-            const value =
-                input.value.trim();
-
-
-            if (!value) {
-
-                showMessage(`
-
-                    <div class="error">
-
-                        Please enter an attendance endpoint.
-
-                    </div>
-
-                `);
-
-                return;
-
-            }
-
-
-            if (
-                /docs\.google\.com\/spreadsheets/i
-                    .test(value)
-            ) {
-
-                showMessage(`
-
-                    <div class="error">
-
-                        Google Sheets link detected
-
-                    </div>
-
-                    <br>
-
-                    Please use the Google Apps Script
-                    Web App URL ending in /exec,
-                    not the Google Sheets document link.
-
-                `);
-
-                return;
-
-            }
-
-
-            API_URL = value;
-
-
-            window.localStorage.setItem(
-                "attendanceApiUrlV5",
-                value
-            );
-
-
-            showMessage(`
-
-                <div class="success">
-
-                    Endpoint saved.
-
-                </div>
-
-                <br>
-
-                You can now scan again.
-
-            `);
-
-        }
-    );
-
-
-    input.addEventListener(
-        "keydown",
-        (event) => {
-
-            if (event.key === "Enter") {
-
-                event.preventDefault();
-
-                button.click();
-
-            }
-
-        }
-    );
+    element.innerHTML =
+        html;
 
 }
 
 
 /*
-==================================================
-START BUTTON
-==================================================
-*/
+ * ==========================================================
+ * START BUTTON
+ * ==========================================================
+ */
 
 function setupStartButton() {
 
@@ -222,11 +78,8 @@ function setupStartButton() {
             "startScannerBtn"
         );
 
-
     if (!button) {
-
         return;
-
     }
 
 
@@ -234,7 +87,8 @@ function setupStartButton() {
         "click",
         () => {
 
-            button.disabled = true;
+            button.disabled =
+                true;
 
             button.textContent =
                 "Starting...";
@@ -244,7 +98,8 @@ function setupStartButton() {
                 .catch(() => {})
                 .finally(() => {
 
-                    button.disabled = false;
+                    button.disabled =
+                        false;
 
                     button.textContent =
                         "Start Scanner";
@@ -258,10 +113,10 @@ function setupStartButton() {
 
 
 /*
-==================================================
-SLEEP
-==================================================
-*/
+ * ==========================================================
+ * UTILITY
+ * ==========================================================
+ */
 
 function sleep(ms) {
 
@@ -277,16 +132,16 @@ function sleep(ms) {
 
 
 /*
-==================================================
-IOS SAFARI
-==================================================
-*/
+ * ==========================================================
+ * iOS SAFARI
+ * ==========================================================
+ */
 
 function isIosSafari() {
 
-    const ua =
-        navigator.userAgent || "";
-
+    var ua =
+        navigator.userAgent ||
+        "";
 
     return (
         /iP(ad|od|hone)/i.test(ua) &&
@@ -298,12 +153,14 @@ function isIosSafari() {
 
 
 /*
-==================================================
-CAMERA SELECTION
-==================================================
-*/
+ * ==========================================================
+ * CAMERA SELECTION
+ * ==========================================================
+ */
 
-function getCameraIdOrConfig(cameras) {
+function getCameraIdOrConfig(
+    cameras
+) {
 
     if (
         !cameras ||
@@ -311,11 +168,10 @@ function getCameraIdOrConfig(cameras) {
     ) {
 
         return {
-
             facingMode: {
-                exact: "environment"
+                exact:
+                    "environment"
             }
-
         };
 
     }
@@ -324,10 +180,9 @@ function getCameraIdOrConfig(cameras) {
     const backCamera =
         cameras.find(
             camera =>
-                /back|rear|environment/i
-                    .test(
-                        camera.label || ""
-                    )
+                /back|rear|environment/i.test(
+                    camera.label || ""
+                )
         );
 
 
@@ -341,15 +196,25 @@ function getCameraIdOrConfig(cameras) {
     }
 
 
-    if (cameras.length > 1) {
+    if (
+        cameras.length > 1
+    ) {
+
+        const frontCamera =
+            cameras.find(
+                camera =>
+                    /front|user/i.test(
+                        camera.label || ""
+                    )
+            );
+
 
         const otherCamera =
             cameras.find(
                 camera =>
-                    !/front|user/i
-                        .test(
-                            camera.label || ""
-                        )
+                    !/front|user/i.test(
+                        camera.label || ""
+                    )
             );
 
 
@@ -373,7 +238,9 @@ function getCameraIdOrConfig(cameras) {
     }
 
 
-    if (isIosSafari()) {
+    if (
+        isIosSafari()
+    ) {
 
         return cameras[0].id;
 
@@ -381,59 +248,60 @@ function getCameraIdOrConfig(cameras) {
 
 
     return {
-
         facingMode: {
-            exact: "environment"
+            exact:
+                "environment"
         }
-
     };
 
 }
 
 
 /*
-==================================================
-JSONP REQUEST
-==================================================
-*/
+ * ==========================================================
+ * JSONP TRANSPORT
+ * ==========================================================
+ */
 
 function jsonpGet(url) {
 
     return new Promise(
-        function(resolve, reject) {
+        function (
+            resolve,
+            reject
+        ) {
 
-            const callbackName =
+            var callbackName =
                 "jsonp_callback_" +
                 Date.now() +
                 "_" +
                 Math.floor(
-                    Math.random() * 10000
+                    Math.random() *
+                    10000
                 );
 
 
-            let script = null;
-
-
-            window[callbackName] =
-                function(data) {
-
-                    resolve(data);
-
-                    delete window[callbackName];
-
-                    if (script) {
-
-                        script.remove();
-
-                    }
-
-                };
-
-
-            script =
+            var script =
                 document.createElement(
                     "script"
                 );
+
+
+            window[
+                callbackName
+            ] = function (
+                data
+            ) {
+
+                resolve(data);
+
+                delete window[
+                    callbackName
+                ];
+
+                script.remove();
+
+            };
 
 
             script.src =
@@ -448,15 +316,13 @@ function jsonpGet(url) {
 
 
             script.onerror =
-                function() {
+                function () {
 
-                    delete window[callbackName];
+                    delete window[
+                        callbackName
+                    ];
 
-                    if (script) {
-
-                        script.remove();
-
-                    }
+                    script.remove();
 
                     reject(
                         new Error(
@@ -478,96 +344,25 @@ function jsonpGet(url) {
 
 
 /*
-==================================================
-POST ATTENDANCE
-==================================================
-
-IMPORTANT:
-This version records every API attempt.
-
-It does NOT change the backend behavior.
-
-It only tells us:
-
-Attempt 1 = how long?
-Retry? = yes/no
-Attempt 2 = how long?
-Final response = how long?
-==================================================
-*/
+ * ==========================================================
+ * ATTENDANCE API
+ * ==========================================================
+ */
 
 async function postAttendance(
     qrID,
-    attempt = 1,
-    diagnostic = null
+    attempt = 1
 ) {
 
-    /*
-    ----------------------------------------------
-    INITIALIZE DIAGNOSTIC OBJECT
-    ----------------------------------------------
-    */
+    var result;
 
-    if (!diagnostic) {
+    var useJsonp =
+        true;
 
-        diagnostic = {
-
-            startedAt:
-                Date.now(),
-
-            attempts: [],
-
-            retryCount: 0
-
-        };
-
-    }
-
-
-    /*
-    ----------------------------------------------
-    CHECK API URL
-    ----------------------------------------------
-    */
-
-    if (
-        /docs\.google\.com\/spreadsheets/i
-            .test(
-                API_URL || ""
-            )
-    ) {
-
-        throw new Error(
-            "This looks like a Google Sheets document link. Please use the Apps Script Web App URL instead."
-        );
-
-    }
-
-
-    /*
-    ----------------------------------------------
-    START THIS ATTEMPT
-    ----------------------------------------------
-    */
-
-    const attemptStart =
-        Date.now();
-
-
-    let result;
-
-    let useJsonp = true;
-
-
-    /*
-    ----------------------------------------------
-    DETERMINE REQUEST METHOD
-    ----------------------------------------------
-    */
 
     try {
 
-        const apiOrigin =
+        var apiOrigin =
             new URL(
                 API_URL
             ).origin;
@@ -581,305 +376,130 @@ async function postAttendance(
 
     catch (error) {
 
-        useJsonp = true;
+        useJsonp =
+            true;
 
     }
 
 
-    /*
-    ----------------------------------------------
-    SEND REQUEST
-    ----------------------------------------------
-    */
+    if (
+        useJsonp
+    ) {
 
-    try {
+        result =
+            await jsonpGet(
+                API_URL +
+                "?qrID=" +
+                encodeURIComponent(
+                    qrID
+                )
+            );
 
-        if (useJsonp) {
+    }
 
-            result =
-                await jsonpGet(
-                    API_URL +
-                    "?qrID=" +
-                    encodeURIComponent(
-                        qrID
-                    )
-                );
+    else {
 
-        }
+        const response =
+            await fetch(
+                API_URL,
+                {
+                    method:
+                        "POST",
 
-        else {
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
 
-            const response =
-                await fetch(
-                    API_URL,
-                    {
-
-                        method: "POST",
-
-                        headers: {
-
-                            "Content-Type":
-                                "application/json"
-
-                        },
-
-                        body:
-                            JSON.stringify({
+                    body:
+                        JSON.stringify({
+                            qrID:
                                 qrID
-                            })
-
-                    }
-                );
-
-
-            const text =
-                await response.text();
-
-
-            try {
-
-                result =
-                    text
-                        ? JSON.parse(text)
-                        : {};
-
-            }
-
-            catch (error) {
-
-                result = {
-
-                    success: false,
-
-                    message:
-                        text ||
-                        "Invalid server response"
-
-                };
-
-            }
-
-
-            result.__httpStatus =
-                response.status;
-
-        }
-
-    }
-
-    catch (error) {
-
-        const attemptEnd =
-            Date.now();
-
-
-        diagnostic.attempts.push({
-
-            attempt: attempt,
-
-            duration:
-                (
-                    attemptEnd -
-                    attemptStart
-                ) / 1000,
-
-            success: false,
-
-            error:
-                error.message ||
-                String(error)
-
-        });
-
-
-        throw error;
-
-    }
-
-
-    /*
-    ----------------------------------------------
-    END THIS ATTEMPT
-    ----------------------------------------------
-    */
-
-    const attemptEnd =
-        Date.now();
-
-
-    const attemptSeconds =
-        (
-            attemptEnd -
-            attemptStart
-        ) / 1000;
-
-
-    /*
-    ----------------------------------------------
-    CHECK TRANSACTION/LOCK ERROR
-    ----------------------------------------------
-    */
-
-    const isLockError =
-        /transaction lock|temporarily|locked|database repository/i
-            .test(
-                `${result.message || ""} ${
-                    result.__httpStatus || ""
-                }`
+                        })
+                }
             );
 
 
-    /*
-    ----------------------------------------------
-    SAVE ATTEMPT RESULT
-    ----------------------------------------------
-    */
-
-    diagnostic.attempts.push({
-
-        attempt: attempt,
-
-        duration:
-            attemptSeconds,
-
-        success:
-            !!result.success,
-
-        code:
-            result.code ||
-            "",
-
-        message:
-            result.message ||
-            "",
-
-        lockError:
-            isLockError
-
-    });
+        const text =
+            await response.text();
 
 
-    /*
-    ----------------------------------------------
-    RETRY IF NEEDED
-    ----------------------------------------------
-    */
+        try {
 
-    if (
+            result =
+                text
+                    ? JSON.parse(text)
+                    : {};
 
-        (
-            (
-                result.__httpStatus &&
-                result.__httpStatus !== 200
-            )
+        }
 
-            ||
+        catch (error) {
 
-            !result.success
-        )
+            result = {
 
-        &&
+                success:
+                    false,
 
-        isLockError
+                message:
+                    text ||
+                    "Invalid server response"
 
-        &&
+            };
 
-        attempt < 3
-
-    ) {
-
-        diagnostic.retryCount += 1;
+        }
 
 
-        /*
-        ------------------------------------------
-        WAIT BEFORE NEXT ATTEMPT
-        ------------------------------------------
-        */
-
-        const retryDelay =
-            1000 * attempt;
-
-
-        await sleep(
-            retryDelay
-        );
-
-
-        /*
-        ------------------------------------------
-        RETRY
-        ------------------------------------------
-        */
-
-        return postAttendance(
-            qrID,
-            attempt + 1,
-            diagnostic
-        );
+        result.__httpStatus =
+            response.status;
 
     }
 
 
-    /*
-    ----------------------------------------------
-    FINAL ERROR
-    ----------------------------------------------
-    */
+    const isLockError =
+        /transaction lock|temporarily|locked|database repository/i.test(
+            `${result.message || ""} ${result.__httpStatus || ""}`
+        );
+
 
     if (
-
         (
             result.__httpStatus &&
             result.__httpStatus !== 200
-        )
-
         ||
-
-        !result.success
-
+            !result.success
+        ) &&
+        isLockError &&
+        attempt < 3
     ) {
 
-        const error =
-            new Error(
-                result.message ||
-                "Unable to record attendance"
-            );
+        await sleep(
+            1000 *
+            attempt
+        );
 
 
-        error.__diagnostic =
-            diagnostic;
-
-
-        throw error;
+        return postAttendance(
+            qrID,
+            attempt + 1
+        );
 
     }
 
 
-    /*
-    ----------------------------------------------
-    FINAL DIAGNOSTIC
-    ----------------------------------------------
-    */
-
-    diagnostic.completedAt =
-        Date.now();
-
-
-    diagnostic.totalSeconds =
+    if (
         (
-            diagnostic.completedAt -
-            diagnostic.startedAt
-        ) / 1000;
+            result.__httpStatus &&
+            result.__httpStatus !== 200
+        ) ||
+        !result.success
+    ) {
 
+        throw new Error(
+            result.message ||
+            "Unable to record attendance"
+        );
 
-    /*
-    Attach diagnostic information
-    without changing normal result fields.
-    */
-
-    result.__diagnostic =
-        diagnostic;
+    }
 
 
     return result;
@@ -888,10 +508,10 @@ async function postAttendance(
 
 
 /*
-==================================================
-CONNECTION ERROR
-==================================================
-*/
+ * ==========================================================
+ * CONNECTION ERROR
+ * ==========================================================
+ */
 
 function showConnectionError(
     message
@@ -915,10 +535,10 @@ function showConnectionError(
 
 
 /*
-==================================================
-QR SCAN SUCCESS
-==================================================
-*/
+ * ==========================================================
+ * QR SCAN SUCCESS
+ * ==========================================================
+ */
 
 async function onScanSuccess(
     decodedText
@@ -926,14 +546,13 @@ async function onScanSuccess(
 
     const qrID =
         String(
-            decodedText || ""
+            decodedText ||
+            ""
         ).trim();
 
 
     if (!qrID) {
-
         return;
-
     }
 
 
@@ -941,28 +560,14 @@ async function onScanSuccess(
         Date.now();
 
 
-    /*
-    ----------------------------------------------
-    DUPLICATE SCAN PROTECTION
-    ----------------------------------------------
-    */
-
     if (
-
-        busy
-
-        ||
-
+        busy ||
         (
-            qrID === lastScannedQR
-
-            &&
-
+            qrID === lastScannedQR &&
             currentTime -
             lastScanTime <
             2500
         )
-
     ) {
 
         return;
@@ -970,20 +575,36 @@ async function onScanSuccess(
     }
 
 
-    busy = true;
+    busy =
+        true;
+
 
     lastScannedQR =
         qrID;
+
 
     lastScanTime =
         currentTime;
 
 
     /*
-    ----------------------------------------------
-    QR DETECTION TIMER
-    ----------------------------------------------
-    */
+     * ========================================================
+     * ACTUAL QR DETECTION TIMER
+     * ========================================================
+     *
+     * This starts AFTER the camera has become ready.
+     *
+     * Therefore this measurement excludes:
+     *
+     *   - camera permission
+     *   - getCameras()
+     *   - camera initialization
+     *   - scanner.start()
+     *
+     * It measures the actual waiting period from
+     * scanner-ready state until QR detection.
+     * ========================================================
+     */
 
     scanDebugDetectedTime =
         Date.now();
@@ -992,45 +613,34 @@ async function onScanSuccess(
     const detectionSeconds =
         (
             scanDebugDetectedTime -
-            scanDebugStartTime
+            scanDebugReadyTime
         ) / 1000;
 
 
-    /*
-    ----------------------------------------------
-    SHOW QR DETECTION
-    ----------------------------------------------
-    */
-
     showMessage(`
 
-        <div class="success">
+        <div>
 
+            <b>QR DETECTED</b>
+
+            <br><br>
+
+            QR:
+            ${qrID}
+
+            <br><br>
+
+            Detection Time:
             <b>
-                🔎 QR DETECTED
+                ${detectionSeconds.toFixed(2)}
+                seconds
             </b>
 
+            <br><br>
+
+            Sending to server...
+
         </div>
-
-        <br>
-
-        QR:
-
-        <b>
-            ${qrID}
-        </b>
-
-        <br><br>
-
-        QR Detection:
-
-        <b>
-            ${detectionSeconds.toFixed(2)}s
-        </b>
-
-        <br><br>
-
-        Contacting server...
 
     `);
 
@@ -1038,55 +648,14 @@ async function onScanSuccess(
     try {
 
         /*
-        ------------------------------------------
-        API REQUEST TIMER
-        ------------------------------------------
-        */
+         * ====================================================
+         * API REQUEST TIMER
+         * ====================================================
+         */
 
         scanDebugRequestStartTime =
             Date.now();
 
-
-        showMessage(`
-
-            <div>
-
-                <b>
-                    🔎 QR DETECTED
-                </b>
-
-                <br><br>
-
-                QR:
-
-                <b>
-                    ${qrID}
-                </b>
-
-                <br><br>
-
-                QR Detection:
-
-                <b>
-                    ${detectionSeconds.toFixed(2)}s
-                </b>
-
-                <br><br>
-
-                <b>
-                    Contacting server...
-                </b>
-
-            </div>
-
-        `);
-
-
-        /*
-        ------------------------------------------
-        CALL SERVER
-        ------------------------------------------
-        */
 
         const result =
             await postAttendance(
@@ -1095,40 +664,14 @@ async function onScanSuccess(
 
 
         /*
-        ------------------------------------------
-        RESPONSE TIMING
-        ------------------------------------------
-        */
+         * ====================================================
+         * API RESPONSE TIMER
+         * ====================================================
+         */
 
         const apiResponseTime =
             Date.now();
 
-
-        const totalSeconds =
-            (
-                apiResponseTime -
-                scanDebugStartTime
-            ) / 1000;
-
-
-        const diagnostic =
-            result.__diagnostic || {
-
-                attempts: [],
-
-                retryCount: 0,
-
-                totalSeconds:
-                    0
-
-            };
-
-
-        /*
-        ------------------------------------------
-        CALCULATE API TIME
-        ------------------------------------------
-        */
 
         const apiSeconds =
             (
@@ -1137,63 +680,16 @@ async function onScanSuccess(
             ) / 1000;
 
 
-        /*
-        ------------------------------------------
-        BUILD ATTEMPT DETAILS
-        ------------------------------------------
-        */
-
-        let attemptDetails = "";
+        const totalSeconds =
+            (
+                apiResponseTime -
+                scanDebugReadyTime
+            ) / 1000;
 
 
         if (
-            diagnostic.attempts &&
-            diagnostic.attempts.length
+            result.success
         ) {
-
-            attemptDetails =
-                diagnostic.attempts
-                    .map(
-                        item => `
-
-                            Attempt ${item.attempt}:
-                            <b>
-                                ${Number(
-                                    item.duration
-                                ).toFixed(2)}s
-                            </b>
-
-                            <br>
-
-                            Result:
-                            ${
-                                item.success
-                                    ? "SUCCESS"
-                                    : "FAILED"
-                            }
-
-                            ${
-                                item.lockError
-                                    ? "<br>Lock/transaction issue detected"
-                                    : ""
-                            }
-
-                        `
-                    )
-                    .join(
-                        "<hr>"
-                    );
-
-        }
-
-
-        /*
-        ------------------------------------------
-        SUCCESS RESPONSE
-        ------------------------------------------
-        */
-
-        if (result.success) {
 
             showMessage(`
 
@@ -1222,46 +718,19 @@ async function onScanSuccess(
                     <br><br>
 
                     QR Detection:
+                    ${detectionSeconds.toFixed(2)}s
 
-                    <b>
-                        ${detectionSeconds.toFixed(2)}s
-                    </b>
+                    <br>
 
-                    <br><br>
+                    Server Response:
+                    ${apiSeconds.toFixed(2)}s
 
-                    API Request:
-
-                    <b>
-                        ${apiSeconds.toFixed(2)}s
-                    </b>
-
-                    <br><br>
+                    <br>
 
                     Total:
-
                     <b>
                         ${totalSeconds.toFixed(2)}s
                     </b>
-
-                    <br><br>
-
-                    Retries:
-
-                    <b>
-                        ${diagnostic.retryCount}
-                    </b>
-
-                    <br><br>
-
-                    <hr>
-
-                    <b>
-                        API ATTEMPTS
-                    </b>
-
-                    <br><br>
-
-                    ${attemptDetails}
 
                 </small>
 
@@ -1284,30 +753,17 @@ async function onScanSuccess(
                 <small>
 
                     QR Detection:
-
                     ${detectionSeconds.toFixed(2)}s
 
                     <br>
 
-                    API:
-
+                    Server Response:
                     ${apiSeconds.toFixed(2)}s
 
                     <br>
 
                     Total:
-
                     ${totalSeconds.toFixed(2)}s
-
-                    <br><br>
-
-                    Retries:
-
-                    ${diagnostic.retryCount}
-
-                    <br><br>
-
-                    ${attemptDetails}
 
                 </small>
 
@@ -1316,13 +772,6 @@ async function onScanSuccess(
         }
 
     }
-
-
-    /*
-    ----------------------------------------------
-    ERROR
-    ----------------------------------------------
-    */
 
     catch (error) {
 
@@ -1340,65 +789,8 @@ async function onScanSuccess(
         const totalSeconds =
             (
                 errorTime -
-                scanDebugStartTime
+                scanDebugReadyTime
             ) / 1000;
-
-
-        let diagnosticHTML = "";
-
-
-        if (
-            error.__diagnostic
-        ) {
-
-            const diagnostic =
-                error.__diagnostic;
-
-
-            diagnosticHTML =
-
-                `
-
-                <br><br>
-
-                <b>
-                    API ATTEMPTS
-                </b>
-
-                <br><br>
-
-                ${
-                    diagnostic.attempts
-                        .map(
-                            item => `
-
-                                Attempt
-                                ${item.attempt}:
-
-                                <b>
-                                    ${Number(
-                                        item.duration
-                                    ).toFixed(2)}s
-                                </b>
-
-                                <br>
-
-                                ${
-                                    item.lockError
-                                        ? "Transaction/lock issue"
-                                        : ""
-                                }
-
-                                <br><br>
-
-                            `
-                        )
-                        .join("")
-                }
-
-                `;
-
-        }
 
 
         showConnectionError(`
@@ -1410,16 +802,12 @@ async function onScanSuccess(
             <small>
 
                 QR Detection:
-
                 ${detectionSeconds.toFixed(2)}s
 
                 <br>
 
                 Total:
-
                 ${totalSeconds.toFixed(2)}s
-
-                ${diagnosticHTML}
 
             </small>
 
@@ -1428,25 +816,20 @@ async function onScanSuccess(
     }
 
 
-    /*
-    ----------------------------------------------
-    READY AGAIN
-    ----------------------------------------------
-    */
-
     finally {
 
         setTimeout(
             () => {
 
-                busy = false;
+                busy =
+                    false;
 
                 showMessage(
                     "Ready to Scan..."
                 );
 
             },
-            4000
+            2000
         );
 
     }
@@ -1455,20 +838,14 @@ async function onScanSuccess(
 
 
 /*
-==================================================
-START SCANNER
-==================================================
-*/
+ * ==========================================================
+ * START SCANNER
+ * ==========================================================
+ */
 
 async function startScanner() {
 
     try {
-
-        /*
-        ------------------------------------------
-        CHECK LIBRARY
-        ------------------------------------------
-        */
 
         if (
             typeof Html5Qrcode ===
@@ -1485,8 +862,8 @@ async function startScanner() {
 
                 <br>
 
-                Open the Apps Script web app directly
-                in the browser on your phone.
+                Open the scanner page in Safari
+                and check your internet connection.
 
             `);
 
@@ -1494,12 +871,6 @@ async function startScanner() {
 
         }
 
-
-        /*
-        ------------------------------------------
-        CREATE SCANNER
-        ------------------------------------------
-        */
 
         scanner =
             new Html5Qrcode(
@@ -1511,12 +882,12 @@ async function startScanner() {
 
             <div>
 
-                Camera initializing...
+                Camera starting...
 
                 <br><br>
 
                 <small>
-                    Please wait.
+                    Preparing scanner...
                 </small>
 
             </div>
@@ -1525,10 +896,10 @@ async function startScanner() {
 
 
         /*
-        ------------------------------------------
-        GET CAMERAS
-        ------------------------------------------
-        */
+         * ====================================================
+         * CAMERA ENUMERATION
+         * ====================================================
+         */
 
         const cameras =
             await Html5Qrcode.getCameras();
@@ -1546,61 +917,50 @@ async function startScanner() {
         }
 
 
-        /*
-        ------------------------------------------
-        SELECT CAMERA
-        ------------------------------------------
-        */
-
-        const cameraIdOrConfig =
+        var cameraIdOrConfig =
             getCameraIdOrConfig(
                 cameras
             );
 
 
         /*
-        ------------------------------------------
-        START CAMERA
-        ------------------------------------------
-        */
+         * ====================================================
+         * CAMERA / QR CONFIGURATION
+         * ====================================================
+         *
+         * Optimization test:
+         *
+         *   FPS: 15
+         *   QR box: 60%
+         *
+         * QR_CODE only.
+         * ====================================================
+         */
 
         await scanner.start(
-
             cameraIdOrConfig,
-
             {
 
-                /*
-                ==================================
-                SCAN FREQUENCY
-                ==================================
-                */
-
-                fps: 25,
-
-
-                /*
-                ==================================
-                QR BOX
-                ==================================
-                */
+                fps:
+                    15,
 
                 qrbox:
-                    function(
+                    function (
                         viewfinderWidth,
                         viewfinderHeight
                     ) {
 
-                        const minEdge =
+                        var minEdge =
                             Math.min(
                                 viewfinderWidth,
                                 viewfinderHeight
                             );
 
 
-                        const boxSize =
+                        var boxSize =
                             Math.floor(
-                                minEdge * 0.70
+                                minEdge *
+                                0.60
                             );
 
 
@@ -1616,13 +976,6 @@ async function startScanner() {
 
                     },
 
-
-                /*
-                ==================================
-                QR ONLY
-                ==================================
-                */
-
                 formatsToSupport: [
 
                     Html5QrcodeSupportedFormats
@@ -1630,30 +983,26 @@ async function startScanner() {
 
                 ],
 
-
-                /*
-                ==================================
-                DISABLE FLIP
-                ==================================
-                */
-
-                disableFlip: true
+                disableFlip:
+                    true
 
             },
 
             onScanSuccess
-
         );
 
 
         /*
-        ------------------------------------------
-        IMPORTANT:
-        START TIMER ONLY WHEN CAMERA IS READY
-        ------------------------------------------
-        */
+         * ====================================================
+         * SCANNER READY
+         * ====================================================
+         *
+         * IMPORTANT:
+         * The QR detection timer begins HERE.
+         * ====================================================
+         */
 
-        scanDebugStartTime =
+        scanDebugReadyTime =
             Date.now();
 
 
@@ -1663,30 +1012,12 @@ async function startScanner() {
         );
 
 
-        showMessage(`
-
-            <div>
-
-                <b>
-                    Ready to Scan...
-                </b>
-
-                <br><br>
-
-                Point the camera at the QR code.
-
-            </div>
-
-        `);
+        showMessage(
+            "Ready to Scan..."
+        );
 
     }
 
-
-    /*
-    ----------------------------------------------
-    CAMERA ERROR
-    ----------------------------------------------
-    */
 
     catch (error) {
 
@@ -1695,23 +1026,23 @@ async function startScanner() {
 
 
         if (
-            /not allowed|permission|secure context|camera/i
-                .test(errorText)
+            /not allowed|permission|secure context|camera/i.test(
+                errorText
+            )
         ) {
 
             showMessage(`
 
                 <div class="error">
 
-                    Camera Access Blocked
+                    Camera access blocked
 
                 </div>
 
                 <br>
 
                 Allow camera permission and
-                open the web app directly
-                over HTTPS.
+                open the scanner from a secure address.
 
             `);
 
@@ -1736,7 +1067,9 @@ async function startScanner() {
         }
 
 
-        console.error(error);
+        console.error(
+            error
+        );
 
     }
 
@@ -1744,28 +1077,19 @@ async function startScanner() {
 
 
 /*
-==================================================
-PAGE LOAD
-==================================================
-*/
+ * ==========================================================
+ * PAGE INITIALIZATION
+ * ==========================================================
+ */
 
 window.onload =
-    function() {
-
-        setupApiUrlControl();
+    function () {
 
         setupStartButton();
 
 
-        showMessage(`
-
-            Press Start Scanner to begin.
-
-            <br><br>
-
-            Ensure the correct Apps Script
-            endpoint is saved.
-
-        `);
+        showMessage(
+            "Press Start Scanner to begin."
+        );
 
     };
