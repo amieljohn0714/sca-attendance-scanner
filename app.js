@@ -5,8 +5,8 @@
 
         const params = new URLSearchParams(window.location.search);
         const fromQuery = params.get("apiUrl");
-        const fromStorage = window.localStorage.getItem("attendanceApiUrl");
-
+        const fromStorage =
+              window.localStorage.getItem("attendanceApiUrlV5");
         return fromQuery || fromStorage || DEFAULT_API_URL;
 
     }
@@ -64,7 +64,7 @@
             }
 
             API_URL = value;
-            window.localStorage.setItem("attendanceApiUrl", value);
+            window.localStorage.setItem("attendanceApiUrlV5", value);
             showMessage(`<div class="success">Endpoint saved. You can now scan again.</div>`);
 
         });
