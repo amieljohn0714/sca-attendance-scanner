@@ -14,6 +14,8 @@
     let API_URL = getConfiguredApiUrl();
     let scanner;
     let busy = false;
+    let lastScannedQR = "";
+    let lastScanTime = 0;
 
 
     function showMessage(html){
@@ -241,29 +243,41 @@
 
     }
 
+   async function onScanSuccess(decodedText) {
 
-    async function onScanSuccess(decodedText){
+    const qrID = String(decodedText || "").trim();
 
-        if(busy){
-            return;
-        }
+    if (!qrID) {
+        return;
+    }
 
-        busy = true;
+    const currentTime = Date.now();
 
+    if (
+        busy ||
+        (
+            qrID === lastScannedQR &&
+            currentTime - lastScanTime < 2500
+        )
+    ) {
+        return;
+    }
 
-        try {
+    busy = true;
+    lastScannedQR = qrID;
+    lastScanTime = currentTime;
 
-            const result = await postAttendance(decodedText);
+    try {
 
+        const result = await postAttendance(qrID);
 
+        if (result.success) {
 
-            if(result.success){
-
-                showMessage(`
+            showMessage(`
 
                 <div class="success">
 
-                ✅ Attendance Recorded
+                    ✅ Attendance Recorded
 
                 </div>
 
@@ -271,59 +285,67 @@
 
                 ${result.message}
 
-                `);
+            `);
 
-            }
+        } else {
 
-            else{
-
-                showMessage(`
+            showMessage(`
 
                 <div class="error">
 
-                ❌ ${result.message}
+                    ❌ ${result.message}
 
                 </div>
 
-                `);
-
-            }
-
+            `);
 
         }
-
-        catch(error){
-
-            const errorMessage = error && error.message ? error.message : String(error);
-
-            if(/failed to fetch|network|load failed|fetch/i.test(errorMessage)){
-
-                showConnectionError("The attendance server could not be reached. For mobile phones, open the Google Apps Script web app directly in the browser and use its deployed /exec URL. A local folder page may be blocked from reaching the endpoint.");
-
-            }
-
-            else{
-
-                showConnectionError(errorMessage);
-
-            }
-
-        }
-
-
-        setTimeout(()=>{
-
-            busy=false;
-
-            showMessage("Ready to Scan...");
-
-
-        },2000);
-
 
     }
 
+    catch (error) {
 
+        const errorMessage =
+            error && error.message
+                ? error.message
+                : String(error);
+
+        if (
+            /failed to fetch|network|load failed|fetch/i
+                .test(errorMessage)
+        ) {
+
+            showConnectionError(
+                "The attendance server could not be reached."
+            );
+
+        }
+
+        else {
+
+            showConnectionError(
+                errorMessage
+            );
+
+        }
+
+    }
+
+    finally {
+
+        setTimeout(() => {
+
+            busy = false;
+
+            showMessage(
+                "Ready to Scan..."
+            );
+
+        }, 2000);
+
+    }
+
+}
 
     async function startScanner(){
 
@@ -359,17 +381,29 @@
 
             var cameraIdOrConfig = getCameraIdOrConfig(cameras);
 
-            await scanner.start(
-                cameraIdOrConfig,
-                {
-                    fps:10,
-                    qrbox:{
-                        width:260,
-                        height:260
-                    }
-                },
-                onScanSuccess
+    await scanner.start(
+         cameraIdOrConfig,
+    {
+        fps: 15,
+        qrbox: function (viewfinderWidth, viewfinderHeight) {
+
+            var minEdge = Math.min(
+                viewfinderWidth,
+                viewfinderHeight
             );
+
+            var boxSize = Math.floor(
+                minEdge * 0.65
+            );
+
+            return {
+                width: boxSize,
+                height: boxSize
+            };
+        }
+    },
+    onScanSuccess
+);
 
             showMessage("Ready to Scan...");
 
