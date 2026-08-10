@@ -3,53 +3,103 @@
 
 <head>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
 
-<title>GA Attendance Scanner</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
 
-<base href="./">
-<link rel="stylesheet" href="./style.css">
+    <title>
+        GA Attendance Scanner
+    </title>
 
-<script src="https://unpkg.com/html5-qrcode"></script>
+    <base href="./">
+
+    <link
+        rel="stylesheet"
+        href="./style.css"
+    >
+
+    <script
+        src="https://unpkg.com/html5-qrcode"
+    ></script>
 
 </head>
 
+
 <body>
 
-<div class="container">
+    <div class="container">
 
-<h1>
-GA Attendance Scanner
-</h1>
+        <h1>
+            GA Attendance Scanner
+        </h1>
 
-<div class="controls">
 
-<label for="apiUrlInput">Attendance endpoint</label>
+        <!--
+            Scanner build identifier.
 
-<div class="controls-row">
+            This lets us verify that Safari is
+            actually loading the latest GitHub build.
+        -->
 
-<input id="apiUrlInput" type="url" placeholder="https://script.google.com/macros/s/.../exec">
+        <div
+            id="scannerBuild"
+            style="
+                font-size: 12px;
+                opacity: 0.7;
+                margin-top: -10px;
+                margin-bottom: 12px;
+                text-align: center;
+            "
+        >
+            Build: loading...
+        </div>
 
-<button id="saveApiUrlBtn" type="button">Save</button>
 
-</div>
+        <div class="controls">
 
-<p class="hint">For mobile phones, open the Google Apps Script web app directly. Use the deployed Apps Script URL ending in /exec, not the Google Sheets document link.</p>
+            <!--
+                API endpoint configuration has been
+                intentionally removed from the UI.
 
-<button id="startScannerBtn" type="button" class="start-button">Start Scanner</button>
+                The endpoint is now internal to app.js.
+            -->
 
-</div>
 
-<div id="reader"></div>
+            <button
+                id="startScannerBtn"
+                type="button"
+                class="start-button"
+            >
+                Start Scanner
+            </button>
 
-<div id="result">
-Initializing camera...
-</div>
+        </div>
 
-</div>
 
-<script src="./app.js"></script>
+        <div id="reader"></div>
+
+
+        <div id="result">
+            Initializing scanner...
+        </div>
+
+    </div>
+
+
+    <!--
+        OPT-01
+
+        Cache-busting version identifier.
+
+        If Safari has an older cached app.js,
+        ?v=OPT01 forces the browser to request
+        the OPT-01 resource.
+    -->
+
+    <script src="./app.js?v=OPT01"></script>
 
 </body>
 
