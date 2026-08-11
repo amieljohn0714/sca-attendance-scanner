@@ -10,8 +10,13 @@
         content="width=device-width, initial-scale=1"
     >
 
+    <meta
+        name="theme-color"
+        content="#212155"
+    >
+
     <title>
-        GA Attendance Scanner
+        SCA-CCP Attendance Scanner
     </title>
 
     <base href="./">
@@ -30,76 +35,128 @@
 
 <body>
 
-    <div class="container">
+    <main class="scanner-page">
 
-        <h1>
-            GA Attendance Scanner
-        </h1>
+        <section class="scanner-card">
 
 
-        <!--
-            Scanner build identifier.
+            <header class="scanner-header">
 
-            This lets us verify that Safari is
-            actually loading the latest GitHub build.
-        -->
-
-        <div
-            id="scannerBuild"
-            style="
-                font-size: 12px;
-                opacity: 0.7;
-                margin-top: -10px;
-                margin-bottom: 12px;
-                text-align: center;
-            "
-        >
-            Build: loading...
-        </div>
+                <div class="logo-mark">
+                    SCA
+                </div>
 
 
-        <div class="controls">
+                <div class="organization">
 
-            <!--
-                API endpoint configuration has been
-                intentionally removed from the UI.
+                    <div class="university">
+                        University of the East Manila
+                    </div>
 
-                The endpoint is now internal to app.js.
-            -->
+                    <div class="organization-name">
+                        Student Catholic Action
+                        <span>
+                            Christian Communities Program
+                        </span>
+                    </div>
+
+                </div>
+
+            </header>
 
 
-            <button
-                id="startScannerBtn"
-                type="button"
-                class="start-button"
+            <div class="header-divider"></div>
+
+
+            <section class="scanner-heading">
+
+                <div class="eyebrow">
+                    CAMPUS MINISTRY
+                </div>
+
+                <h1>
+                    Attendance Scanner
+                </h1>
+
+                <p>
+                    Scan a member QR code to record
+                    attendance.
+                </p>
+
+            </section>
+
+
+            <section class="scanner-controls">
+
+                <button
+                    id="startScannerBtn"
+                    type="button"
+                    class="start-button"
+                >
+
+                    <span class="button-icon">
+                        QR
+                    </span>
+
+                    Start Scanner
+
+                </button>
+
+            </section>
+
+
+            <section
+                id="reader"
+                class="reader"
+            ></section>
+
+
+            <section
+                id="result"
+                class="result"
             >
-                Start Scanner
-            </button>
 
-        </div>
+                <div class="result-ready">
+
+                    <div class="ready-icon">
+                        ✓
+                    </div>
+
+                    <div class="ready-title">
+                        Ready to Start
+                    </div>
+
+                    <div class="ready-text">
+                        Tap Start Scanner to activate
+                        the camera.
+                    </div>
+
+                </div>
+
+            </section>
 
 
-        <div id="reader"></div>
+            <footer class="scanner-footer">
+
+                <div>
+                    SCA-CCP Attendance System
+                </div>
+
+                <div>
+                    University of the East Manila
+                </div>
+
+            </footer>
 
 
-        <div id="result">
-            Initializing scanner...
-        </div>
+        </section>
 
-    </div>
+    </main>
 
 
-    <!--
-        OPT-01
-
-        Cache-busting version identifier.
-
-        If Safari has an older cached app.js,
-        ?v=OPT01 forces the browser to request
-        the OPT-01 resource.
-    -->
-
-    <script src="./app.js?v=OPT01"></script>
+    <script
+        src="./app.js?v=OPT03"
+    ></script>
 
 </body>
 
