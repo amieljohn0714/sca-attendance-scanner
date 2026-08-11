@@ -961,3 +961,68 @@ h1 {
     }
 
 }
+
+.dashboard-button {
+
+    width: 100%;
+
+    min-height: 48px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 9px;
+
+    padding: 12px 20px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 10px;
+
+    background: #FFFFFF;
+
+    color: var(--navy);
+
+    font-size: 14px;
+
+    font-weight: 800;
+
+    text-decoration: none;
+
+    cursor: pointer;
+
+    transition:
+        transform .15s ease,
+        background .15s ease;
+
+}
+
+
+.dashboard-button:hover {
+
+    background: var(--white);
+
+    transform:
+        translateY(-1px);
+
+}
+
+
+.dashboard-button:active {
+
+    transform:
+        translateY(0);
+
+}
+
+
+.dashboard-icon {
+
+    font-size: 18px;
+
+    line-height: 1;
+
+}
