@@ -1,114 +1,90 @@
 :root {
 
-    --navy:
-        #212155;
+    --navy: #212155;
+    --red: #EF180A;
+    --gold: #E8AF17;
+    --white: #F9F8F7;
+    --vermilion: #DC4222;
 
-    --red:
-        #EF180A;
+    --text: #212155;
+    --muted: #68687A;
+    --border: #E5E3E0;
 
-    --gold:
-        #E8AF17;
-
-    --white:
-        #F9F8F7;
-
-    --vermilion:
-        #DC4222;
-
-    --text:
-        #212155;
-
-    --muted:
-        #68687A;
-
-    --border:
-        #E5E3E0;
+    --success: #258653;
 
 }
 
 
 * {
 
-    box-sizing:
-        border-box;
+    box-sizing: border-box;
 
 }
 
 
 html {
 
-    min-height:
-        100%;
+    min-height: 100%;
 
 }
 
 
 body {
 
-    margin:
-        0;
+    margin: 0;
 
-    min-height:
-        100vh;
+    min-height: 100vh;
 
     font-family:
         Arial,
         Helvetica,
         sans-serif;
 
-    background:
-        var(--white);
+    background: var(--white);
 
-    color:
-        var(--text);
+    color: var(--text);
 
 }
 
 
 button {
 
-    font-family:
-        inherit;
+    font-family: inherit;
+
+    -webkit-tap-highlight-color:
+        transparent;
 
 }
 
 
 .scanner-page {
 
-    min-height:
-        100vh;
+    min-height: 100vh;
 
-    display:
-        flex;
+    display: flex;
 
-    align-items:
-        flex-start;
+    align-items: flex-start;
 
-    justify-content:
-        center;
+    justify-content: center;
 
-    padding:
-        24px 16px 30px;
+    padding: 24px 16px 32px;
 
 }
 
 
 .scanner-card {
 
-    width:
-        100%;
+    width: 100%;
 
-    max-width:
-        620px;
+    max-width: 620px;
 
-    background:
-        #FFFFFF;
+    background: #FFFFFF;
 
     border:
-        1px solid var(--border);
+        1px solid
+        var(--border);
 
-    border-radius:
-        18px;
+    border-radius: 18px;
 
     box-shadow:
         0 8px 30px
@@ -119,22 +95,22 @@ button {
             .08
         );
 
-    overflow:
-        hidden;
+    overflow: hidden;
 
 }
 
 
+/* =========================
+   HEADER
+   ========================= */
+
 .scanner-header {
 
-    display:
-        flex;
+    display: flex;
 
-    align-items:
-        center;
+    align-items: center;
 
-    gap:
-        12px;
+    gap: 14px;
 
     padding:
         18px 20px 16px;
@@ -142,104 +118,73 @@ button {
 }
 
 
-.logo-mark {
+.organization-logo {
 
-    width:
-        48px;
+    width: 56px;
 
-    height:
-        48px;
+    height: 56px;
 
     flex:
-        0 0 48px;
+        0 0 56px;
 
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    justify-content:
-        center;
-
-    border:
-        2px solid var(--navy);
-
-    border-radius:
-        12px;
-
-    color:
-        var(--navy);
-
-    font-size:
-        14px;
-
-    font-weight:
-        900;
-
-    letter-spacing:
-        -.03em;
+    object-fit: contain;
 
 }
 
 
 .organization {
 
-    min-width:
-        0;
+    min-width: 0;
 
 }
 
 
 .university {
 
-    color:
-        var(--navy);
+    color: var(--navy);
 
-    font-size:
-        12px;
+    font-size: 15px;
 
-    font-weight:
-        800;
+    font-weight: 900;
 
-    line-height:
-        1.25;
+    line-height: 1.2;
 
 }
 
 
 .organization-name {
 
-    margin-top:
-        3px;
+    margin-top: 4px;
 
-    color:
-        var(--muted);
+    color: var(--navy);
 
-    font-size:
-        9px;
+    font-size: 11px;
 
-    font-weight:
-        700;
+    font-weight: 800;
 
-    line-height:
-        1.35;
+    line-height: 1.3;
 
 }
 
 
-.organization-name span {
+.office-name {
 
-    display:
-        block;
+    margin-top: 3px;
+
+    color: var(--muted);
+
+    font-size: 10px;
+
+    font-weight: 600;
+
+    line-height: 1.3;
 
 }
 
 
 .header-divider {
 
-    height:
-        3px;
+    height: 3px;
 
     background:
         linear-gradient(
@@ -252,30 +197,29 @@ button {
 }
 
 
+/* =========================
+   HEADING
+   ========================= */
+
 .scanner-heading {
 
     padding:
-        24px 20px 16px;
+        26px 20px 17px;
 
-    text-align:
-        center;
+    text-align: center;
 
 }
 
 
 .eyebrow {
 
-    color:
-        var(--red);
+    color: var(--red);
 
-    font-size:
-        9px;
+    font-size: 10px;
 
-    font-weight:
-        900;
+    font-weight: 900;
 
-    letter-spacing:
-        .14em;
+    letter-spacing: .14em;
 
 }
 
@@ -283,88 +227,71 @@ button {
 h1 {
 
     margin:
-        6px 0 5px;
+        7px 0 6px;
 
-    color:
-        var(--navy);
+    color: var(--navy);
 
-    font-size:
-        26px;
+    font-size: 28px;
 
-    line-height:
-        1.1;
+    line-height: 1.1;
 
 }
 
 
 .scanner-heading p {
 
-    margin:
-        0;
+    margin: 0;
 
-    color:
-        var(--muted);
+    color: var(--muted);
 
-    font-size:
-        11px;
+    font-size: 12px;
 
-    line-height:
-        1.5;
+    line-height: 1.5;
 
 }
 
+
+/* =========================
+   BUTTONS
+   ========================= */
 
 .scanner-controls {
 
+    display: grid;
+
+    gap: 9px;
+
     padding:
-        0 20px 16px;
+        0 20px 17px;
 
 }
 
 
-.start-button {
+.start-button,
+.dashboard-button {
 
-    width:
-        100%;
+    width: 100%;
 
-    min-height:
-        48px;
+    min-height: 48px;
 
-    display:
-        flex;
+    display: flex;
 
-    align-items:
-        center;
+    align-items: center;
 
-    justify-content:
-        center;
+    justify-content: center;
 
-    gap:
-        9px;
+    gap: 9px;
 
     padding:
         12px 20px;
 
-    border:
-        0;
+    border-radius: 10px;
 
-    border-radius:
-        10px;
+    font-size: 14px;
 
-    background:
-        var(--navy);
+    font-weight: 800;
 
-    color:
-        #FFFFFF;
-
-    font-size:
-        14px;
-
-    font-weight:
-        800;
-
-    cursor:
-        pointer;
+    cursor: pointer;
 
     transition:
         transform .15s ease,
@@ -373,7 +300,19 @@ h1 {
 }
 
 
-.start-button:hover {
+.start-button {
+
+    border: 0;
+
+    background: var(--navy);
+
+    color: #FFFFFF;
+
+}
+
+
+.start-button:hover,
+.dashboard-button:hover {
 
     transform:
         translateY(-1px);
@@ -381,7 +320,8 @@ h1 {
 }
 
 
-.start-button:active {
+.start-button:active,
+.dashboard-button:active {
 
     transform:
         translateY(0);
@@ -391,34 +331,26 @@ h1 {
 
 .start-button:disabled {
 
-    opacity:
-        .65;
+    opacity: .65;
 
-    cursor:
-        not-allowed;
+    cursor: not-allowed;
 
-    transform:
-        none;
+    transform: none;
 
 }
 
 
 .button-icon {
 
-    width:
-        25px;
+    width: 26px;
 
-    height:
-        25px;
+    height: 26px;
 
-    display:
-        inline-flex;
+    display: inline-flex;
 
-    align-items:
-        center;
+    align-items: center;
 
-    justify-content:
-        center;
+    justify-content: center;
 
     border:
         1px solid
@@ -429,17 +361,40 @@ h1 {
             .55
         );
 
-    border-radius:
-        6px;
+    border-radius: 6px;
 
-    font-size:
-        8px;
+    font-size: 8px;
 
-    font-weight:
-        900;
+    font-weight: 900;
 
 }
 
+
+.dashboard-button {
+
+    border:
+        1px solid
+        var(--border);
+
+    background: #FFFFFF;
+
+    color: var(--navy);
+
+}
+
+
+.dashboard-icon {
+
+    font-size: 18px;
+
+    line-height: 1;
+
+}
+
+
+/* =========================
+   READER
+   ========================= */
 
 .reader {
 
@@ -451,57 +406,63 @@ h1 {
     margin:
         0 20px;
 
-    overflow:
-        hidden;
+    overflow: hidden;
 
     border:
-        1px solid var(--border);
+        1px solid
+        var(--border);
 
-    border-radius:
-        14px;
+    border-radius: 14px;
 
-    background:
-        #F5F4F2;
+    background: #F5F4F2;
 
 }
 
 
 .reader video {
 
-    border-radius:
-        12px;
+    display: block;
+
+    width: 100%;
+
+    border-radius: 12px;
 
 }
 
+
+.reader img {
+
+    max-width: 100%;
+
+}
+
+
+/* =========================
+   RESULT
+   ========================= */
 
 .result {
 
     margin:
         16px 20px 0;
 
-    min-height:
-        145px;
+    min-height: 145px;
 
-    display:
-        flex;
+    display: flex;
 
-    align-items:
-        center;
+    align-items: center;
 
-    justify-content:
-        center;
+    justify-content: center;
 
-    padding:
-        18px;
+    padding: 18px;
 
     border:
-        1px solid var(--border);
+        1px solid
+        var(--border);
 
-    border-radius:
-        14px;
+    border-radius: 14px;
 
-    background:
-        #FFFFFF;
+    background: #FFFFFF;
 
 }
 
@@ -511,34 +472,27 @@ h1 {
 .result-success,
 .result-error {
 
-    width:
-        100%;
+    width: 100%;
 
-    text-align:
-        center;
+    text-align: center;
 
 }
 
 
 .ready-icon {
 
-    width:
-        34px;
+    width: 36px;
 
-    height:
-        34px;
+    height: 36px;
 
     margin:
         0 auto 9px;
 
-    display:
-        flex;
+    display: flex;
 
-    align-items:
-        center;
+    align-items: center;
 
-    justify-content:
-        center;
+    justify-content: center;
 
     border:
         1px solid
@@ -549,17 +503,13 @@ h1 {
             .18
         );
 
-    border-radius:
-        50%;
+    border-radius: 50%;
 
-    color:
-        var(--navy);
+    color: var(--navy);
 
-    font-size:
-        16px;
+    font-size: 17px;
 
-    font-weight:
-        900;
+    font-weight: 900;
 
 }
 
@@ -567,14 +517,11 @@ h1 {
 .ready-title,
 .processing-title {
 
-    color:
-        var(--navy);
+    color: var(--navy);
 
-    font-size:
-        14px;
+    font-size: 15px;
 
-    font-weight:
-        800;
+    font-weight: 800;
 
 }
 
@@ -582,28 +529,26 @@ h1 {
 .ready-text,
 .processing-text {
 
-    margin-top:
-        5px;
+    margin-top: 5px;
 
-    color:
-        var(--muted);
+    color: var(--muted);
 
-    font-size:
-        10px;
+    font-size: 11px;
 
-    line-height:
-        1.5;
+    line-height: 1.5;
 
 }
 
 
+/* =========================
+   PROCESSING
+   ========================= */
+
 .processing-spinner {
 
-    width:
-        30px;
+    width: 32px;
 
-    height:
-        30px;
+    height: 32px;
 
     margin:
         0 auto 10px;
@@ -615,11 +560,11 @@ h1 {
     border-top-color:
         var(--gold);
 
-    border-radius:
-        50%;
+    border-radius: 50%;
 
     animation:
-        scannerSpin .8s linear infinite;
+        scannerSpin
+        .8s linear infinite;
 
 }
 
@@ -629,43 +574,37 @@ h1 {
     to {
 
         transform:
-            rotate(
-                360deg
-            );
+            rotate(360deg);
 
     }
 
 }
 
 
+/* =========================
+   SUCCESS / ERROR
+   ========================= */
+
 .result-icon {
 
-    width:
-        42px;
+    width: 44px;
 
-    height:
-        42px;
+    height: 44px;
 
     margin:
         0 auto 9px;
 
-    display:
-        flex;
+    display: flex;
 
-    align-items:
-        center;
+    align-items: center;
 
-    justify-content:
-        center;
+    justify-content: center;
 
-    border-radius:
-        50%;
+    border-radius: 50%;
 
-    font-size:
-        21px;
+    font-size: 22px;
 
-    font-weight:
-        900;
+    font-weight: 900;
 
 }
 
@@ -681,7 +620,7 @@ h1 {
         );
 
     color:
-        #258653;
+        var(--success);
 
 }
 
@@ -704,156 +643,129 @@ h1 {
 
 .result-title {
 
-    color:
-        var(--navy);
+    color: var(--navy);
 
-    font-size:
-        15px;
+    font-size: 16px;
 
-    font-weight:
-        900;
+    font-weight: 900;
 
 }
 
 
 .result-message {
 
-    margin-top:
-        5px;
+    margin-top: 5px;
 
-    color:
-        var(--muted);
+    color: var(--muted);
 
-    font-size:
-        11px;
+    font-size: 11px;
 
-    line-height:
-        1.5;
+    line-height: 1.5;
 
 }
 
 
+/* =========================
+   PERSON
+   ========================= */
+
 .result-person {
 
-    margin-top:
-        14px;
+    margin-top: 14px;
 
-    padding-top:
-        13px;
+    padding-top: 13px;
 
     border-top:
-        1px solid var(--border);
+        1px solid
+        var(--border);
 
 }
 
 
 .result-name {
 
-    color:
-        var(--navy);
+    color: var(--navy);
 
-    font-size:
-        15px;
+    font-size: 16px;
 
-    font-weight:
-        900;
+    font-weight: 900;
 
 }
 
 
 .result-detail {
 
-    margin-top:
-        3px;
+    margin-top: 3px;
 
-    color:
-        var(--muted);
+    color: var(--muted);
 
-    font-size:
-        10px;
+    font-size: 10px;
 
 }
 
 
+/* =========================
+   STATUS
+   ========================= */
+
 .result-status-row {
 
-    margin-top:
-        13px;
+    margin-top: 13px;
 
-    display:
-        flex;
+    display: flex;
 
-    align-items:
-        center;
+    align-items: center;
 
-    justify-content:
-        space-between;
+    justify-content: space-between;
 
-    gap:
-        12px;
+    gap: 12px;
 
 }
 
 
 .result-status {
 
-    display:
-        inline-flex;
+    display: inline-flex;
 
-    align-items:
-        center;
+    align-items: center;
 
-    gap:
-        6px;
+    gap: 6px;
 
-    color:
-        #258653;
+    color: var(--success);
 
-    font-size:
-        10px;
+    font-size: 10px;
 
-    font-weight:
-        800;
+    font-weight: 800;
 
 }
 
 
 .status-dot {
 
-    width:
-        7px;
+    width: 7px;
 
-    height:
-        7px;
+    height: 7px;
 
-    display:
-        inline-block;
+    display: inline-block;
 
-    border-radius:
-        50%;
+    border-radius: 50%;
 
-    background:
-        #258653;
+    background: var(--success);
 
 }
 
 
 .result-counts {
 
-    display:
-        flex;
+    display: flex;
 
-    gap:
-        8px;
+    gap: 8px;
 
-    color:
-        var(--muted);
+    color: var(--muted);
 
-    font-size:
-        9px;
+    font-size: 9px;
 
-    font-weight:
-        800;
+    font-weight: 800;
 
 }
 
@@ -864,74 +776,68 @@ h1 {
         5px 7px;
 
     border:
-        1px solid var(--border);
+        1px solid
+        var(--border);
 
-    border-radius:
-        6px;
+    border-radius: 6px;
 
 }
 
 
+/* =========================
+   FOOTER
+   ========================= */
+
 .scanner-footer {
 
-    display:
-        flex;
+    display: flex;
 
-    align-items:
-        center;
+    align-items: center;
 
-    justify-content:
-        space-between;
+    justify-content: space-between;
 
-    gap:
-        10px;
+    gap: 10px;
 
     padding:
         16px 20px;
 
-    margin-top:
-        18px;
+    margin-top: 18px;
 
     border-top:
-        1px solid var(--border);
+        1px solid
+        var(--border);
 
-    color:
-        var(--muted);
+    color: var(--muted);
 
-    font-size:
-        8px;
+    font-size: 8px;
 
-    font-weight:
-        700;
+    font-weight: 700;
 
 }
 
 
-@media (
-    max-width: 480px
-) {
+/* =========================
+   MOBILE
+   ========================= */
+
+@media (max-width: 480px) {
 
     .scanner-page {
 
-        padding:
-            0;
+        padding: 0;
 
     }
 
 
     .scanner-card {
 
-        min-height:
-            100vh;
+        min-height: 100vh;
 
-        border:
-            0;
+        border: 0;
 
-        border-radius:
-            0;
+        border-radius: 0;
 
-        box-shadow:
-            none;
+        box-shadow: none;
 
     }
 
@@ -939,7 +845,39 @@ h1 {
     .scanner-header {
 
         padding:
-            16px;
+            18px 16px 15px;
+
+    }
+
+
+    .organization-logo {
+
+        width: 52px;
+
+        height: 52px;
+
+        flex-basis: 52px;
+
+    }
+
+
+    .university {
+
+        font-size: 14px;
+
+    }
+
+
+    .organization-name {
+
+        font-size: 10px;
+
+    }
+
+
+    .office-name {
+
+        font-size: 9px;
 
     }
 
@@ -947,7 +885,14 @@ h1 {
     .scanner-heading {
 
         padding:
-            22px 16px 14px;
+            24px 16px 15px;
+
+    }
+
+
+    h1 {
+
+        font-size: 25px;
 
     }
 
@@ -955,7 +900,7 @@ h1 {
     .scanner-controls {
 
         padding:
-            0 16px 14px;
+            0 16px 15px;
 
     }
 
@@ -991,33 +936,27 @@ h1 {
 }
 
 
-@media (
-    max-width: 360px
-) {
+@media (max-width: 360px) {
 
     .organization-name {
 
-        font-size:
-            8px;
+        font-size: 9px;
 
     }
 
 
     h1 {
 
-        font-size:
-            23px;
+        font-size: 23px;
 
     }
 
 
     .result-status-row {
 
-        align-items:
-            flex-start;
+        align-items: flex-start;
 
-        flex-direction:
-            column;
+        flex-direction: column;
 
     }
 
