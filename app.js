@@ -1,77 +1,6 @@
-/*
- * ==========================================================
- * SCA-CCP ATTENDANCE SCANNER
- * Scanner Build: OPT-02B
- * ==========================================================
- *
- * OPT-02B = DIAGNOSTIC-ONLY BUILD
- *
- * BASE:
- *   Verified OPT-01
- *
- * IMPORTANT:
- *   The JSONP transport mechanism is intentionally preserved.
- *
- * NO BACKEND CHANGES.
- *
- * NO DATABASE CHANGES.
- *
- * NO ATTENDANCE LOGIC CHANGES.
- *
- * NO ID SERVICE CHANGES.
- *
- * NO SCANNER PERFORMANCE CHANGES.
- *
- * ONLY ADDITION:
- *   Detailed timing instrumentation.
- *
- * ==========================================================
- */
-
-
-/*
- * ==========================================================
- * BUILD IDENTIFICATION
- * ==========================================================
- */
-
-const SCANNER_BUILD =
-    "OPT-02B";
-
-
-console.log(
-    "=========================================="
-);
-
-console.log(
-    "SCA-CCP ATTENDANCE SCANNER"
-);
-
-console.log(
-    "SCANNER BUILD:",
-    SCANNER_BUILD
-);
-
-console.log(
-    "=========================================="
-);
-
-
-/*
- * ==========================================================
- * INTERNAL API CONFIGURATION
- * ==========================================================
- */
-
 const API_URL =
     "https://script.google.com/macros/s/AKfycbyO5afPbnMP54PlrjHF73v5PWf2Qo-mVmxr9h33FP7s_Flml6DBva8xShp1i395aMB9Vg/exec";
 
-
-/*
- * ==========================================================
- * GLOBAL STATE
- * ==========================================================
- */
 
 let scanner;
 
@@ -82,38 +11,6 @@ let lastScannedQR = "";
 let lastScanTime = 0;
 
 
-/*
- * ==========================================================
- * SCANNER DIAGNOSTICS
- * ==========================================================
- */
-
-let scanDebugReadyTime = 0;
-
-let scanDebugDetectedTime = 0;
-
-let scanDebugRequestStartTime = 0;
-
-
-/*
- * ==========================================================
- * JSONP DIAGNOSTICS
- * ==========================================================
- */
-
-let jsonpDebugStartTime = 0;
-
-let jsonpDebugScriptAppendTime = 0;
-
-let jsonpDebugCallbackTime = 0;
-
-
-/*
- * ==========================================================
- * UI HELPER
- * ==========================================================
- */
-
 function showMessage(
     html
 ) {
@@ -123,48 +20,15 @@ function showMessage(
             "result"
         );
 
-
     if (!element) {
         return;
     }
-
 
     element.innerHTML =
         html;
 
 }
 
-
-/*
- * ==========================================================
- * BUILD MARKER
- * ==========================================================
- */
-
-function showBuildMarker() {
-
-    const element =
-        document.getElementById(
-            "scannerBuild"
-        );
-
-
-    if (element) {
-
-        element.textContent =
-            "Build: " +
-            SCANNER_BUILD;
-
-    }
-
-}
-
-
-/*
- * ==========================================================
- * START BUTTON
- * ==========================================================
- */
 
 function setupStartButton() {
 
@@ -173,11 +37,9 @@ function setupStartButton() {
             "startScannerBtn"
         );
 
-
     if (!button) {
         return;
     }
-
 
     button.addEventListener(
         "click",
@@ -212,12 +74,6 @@ function setupStartButton() {
 }
 
 
-/*
- * ==========================================================
- * SLEEP
- * ==========================================================
- */
-
 function sleep(
     ms
 ) {
@@ -238,18 +94,11 @@ function sleep(
 }
 
 
-/*
- * ==========================================================
- * iOS SAFARI DETECTION
- * ==========================================================
- */
-
 function isIosSafari() {
 
     var ua =
         navigator.userAgent ||
         "";
-
 
     return (
 
@@ -273,12 +122,6 @@ function isIosSafari() {
 
 }
 
-
-/*
- * ==========================================================
- * CAMERA SELECTION
- * ==========================================================
- */
 
 function getCameraIdOrConfig(
     cameras
@@ -385,21 +228,6 @@ function getCameraIdOrConfig(
 }
 
 
-/*
- * ==========================================================
- * JSONP TRANSPORT
- * ==========================================================
- *
- * IMPORTANT:
- *
- * THIS IS THE SAME FUNCTIONAL JSONP ARCHITECTURE
- * FROM THE VERIFIED OPT-01.
- *
- * Only diagnostic timestamps/logging are added.
- *
- * ==========================================================
- */
-
 function jsonpGet(
     url
 ) {
@@ -426,77 +254,12 @@ function jsonpGet(
                 );
 
 
-            /*
-             * ==================================================
-             * JSONP REQUEST CREATED
-             * ==================================================
-             */
-
-            jsonpDebugStartTime =
-                Date.now();
-
-
-            console.log(
-                "[JSONP T1] Request created:",
-                new Date(
-                    jsonpDebugStartTime
-                ).toISOString()
-            );
-
-
             window[
                 callbackName
             ] =
                 function (
                     data
                 ) {
-
-                    /*
-                     * ==========================================
-                     * JSONP CALLBACK RECEIVED
-                     * ==========================================
-                     */
-
-                    jsonpDebugCallbackTime =
-                        Date.now();
-
-
-                    const jsonpSeconds =
-                        (
-
-                            jsonpDebugCallbackTime -
-                            jsonpDebugScriptAppendTime
-
-                        ) / 1000;
-
-
-                    const totalJsonpSeconds =
-                        (
-
-                            jsonpDebugCallbackTime -
-                            jsonpDebugStartTime
-
-                        ) / 1000;
-
-
-                    console.log(
-                        "[JSONP T3] Callback received"
-                    );
-
-
-                    console.log(
-                        "[JSONP] Browser wait:",
-                        jsonpSeconds.toFixed(3) +
-                        "s"
-                    );
-
-
-                    console.log(
-                        "[JSONP] Request lifecycle:",
-                        totalJsonpSeconds.toFixed(3) +
-                        "s"
-                    );
-
 
                     resolve(
                         data
@@ -509,11 +272,6 @@ function jsonpGet(
 
 
                     script.remove();
-
-
-                    console.log(
-                        "[JSONP T4] Callback cleanup complete"
-                    );
 
                 };
 
@@ -534,11 +292,6 @@ function jsonpGet(
             script.onerror =
                 function () {
 
-                    console.error(
-                        "[JSONP ERROR] Network error"
-                    );
-
-
                     delete window[
                         callbackName
                     ];
@@ -556,27 +309,6 @@ function jsonpGet(
                 };
 
 
-            /*
-             * ==================================================
-             * SCRIPT APPENDED
-             * ==================================================
-             */
-
-            jsonpDebugScriptAppendTime =
-                Date.now();
-
-
-            console.log(
-                "[JSONP T2] Script appended"
-            );
-
-
-            console.log(
-                "[JSONP] URL:",
-                url
-            );
-
-
             document.body.appendChild(
                 script
             );
@@ -587,27 +319,10 @@ function jsonpGet(
 }
 
 
-/*
- * ==========================================================
- * ATTENDANCE API
- * ==========================================================
- */
-
 async function postAttendance(
     qrID,
     attempt = 1
 ) {
-
-    console.log(
-        "[API] postAttendance() START"
-    );
-
-
-    console.log(
-        "[API] QRID:",
-        qrID
-    );
-
 
     var result;
 
@@ -637,14 +352,6 @@ async function postAttendance(
             true;
 
     }
-
-
-    console.log(
-        "[API] Transport:",
-        useJsonp
-            ? "JSONP"
-            : "FETCH"
-    );
 
 
     if (
@@ -730,17 +437,6 @@ async function postAttendance(
     }
 
 
-    console.log(
-        "[API] Result received"
-    );
-
-
-    console.log(
-        "[API] Success:",
-        result.success
-    );
-
-
     const isLockError =
         /transaction lock|temporarily|locked|database repository/i.test(
 
@@ -771,12 +467,6 @@ async function postAttendance(
         attempt < 3
 
     ) {
-
-        console.warn(
-            "[API] Transaction lock retry:",
-            attempt + 1
-        );
-
 
         await sleep(
             1000 *
@@ -820,38 +510,277 @@ async function postAttendance(
 }
 
 
-/*
- * ==========================================================
- * CONNECTION ERROR
- * ==========================================================
- */
-
-function showConnectionError(
-    message
+function escapeHtml(
+    value
 ) {
+
+    return String(
+        value === undefined ||
+        value === null
+            ? ""
+            : value
+    )
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+function getAttendanceData(
+    result
+) {
+
+    if (
+        !result ||
+        typeof result !== "object"
+    ) {
+
+        return {};
+
+    }
+
+
+    return (
+        result.data ||
+        result.student ||
+        {}
+    );
+
+}
+
+
+function getDisplayName(
+    data
+) {
+
+    var surname =
+        data.Surname ||
+        data.surname ||
+        "";
+
+
+    var givenName =
+        data["Given Name"] ||
+        data.givenName ||
+        data.given_name ||
+        "";
+
+
+    var combined =
+        (
+            String(
+                givenName
+            ).trim() +
+            " " +
+            String(
+                surname
+            ).trim()
+        ).trim();
+
+
+    return combined ||
+        "Attendance recorded";
+
+}
+
+
+function getCurrentStatus(
+    data
+) {
+
+    var status =
+        String(
+            data["Current Status"] ||
+            data.current_status ||
+            ""
+        ).toLowerCase();
+
+
+    if (
+        status === "present"
+    ) {
+
+        return "Inside";
+
+    }
+
+
+    if (
+        status === "out"
+    ) {
+
+        return "Outside";
+
+    }
+
+
+    return "Present";
+
+}
+
+
+function renderSuccess(
+    result
+) {
+
+    var data =
+        getAttendanceData(
+            result
+        );
+
+
+    var name =
+        getDisplayName(
+            data
+        );
+
+
+    var department =
+        data.Department ||
+        data.department ||
+        "";
+
+
+    var committee =
+        data.Committee ||
+        data.committee ||
+        "";
+
+
+    var role =
+        data.Role ||
+        data.role ||
+        "";
+
+
+    var status =
+        getCurrentStatus(
+            data
+        );
+
+
+    var entries =
+        data["Total Entries"] ||
+        data.total_entries ||
+        0;
+
+
+    var exits =
+        data["Total Exits"] ||
+        data.total_exits ||
+        0;
+
 
     showMessage(`
 
-        <div class="error">
+        <div class="result-success">
 
-            ❌ Connection Error
+            <div class="result-icon">
+                ✓
+            </div>
+
+            <div class="result-title">
+                Attendance Recorded
+            </div>
+
+            <div class="result-message">
+                ${escapeHtml(
+                    result.message ||
+                    "Attendance recorded successfully."
+                )}
+            </div>
 
         </div>
 
-        <br>
 
-        ${message}
+        <div class="result-person">
+
+            <div class="result-name">
+                ${escapeHtml(
+                    name
+                )}
+            </div>
+
+            ${
+                department
+                    ? `
+                        <div class="result-detail">
+                            ${escapeHtml(
+                                department
+                            )}
+                        </div>
+                      `
+                    : ""
+            }
+
+            ${
+                role
+                    ? `
+                        <div class="result-detail">
+                            ${escapeHtml(
+                                role
+                            )}
+                        </div>
+                      `
+                    : ""
+            }
+
+        </div>
+
+
+        <div class="result-status-row">
+
+            <div class="result-status">
+
+                <span class="status-dot"></span>
+
+                ${escapeHtml(
+                    status
+                )}
+
+            </div>
+
+
+            <div class="result-counts">
+
+                <span>
+                    IN ${escapeHtml(
+                        entries
+                    )}
+                </span>
+
+                <span>
+                    OUT ${escapeHtml(
+                        exits
+                    )}
+                </span>
+
+            </div>
+
+        </div>
 
     `);
 
 }
 
-
-/*
- * ==========================================================
- * QR SCAN SUCCESS
- * ==========================================================
- */
 
 async function onScanSuccess(
     decodedText
@@ -910,83 +839,19 @@ async function onScanSuccess(
         currentTime;
 
 
-    /*
-     * ========================================================
-     * T0 — QR DETECTED
-     * ========================================================
-     */
-
-    scanDebugDetectedTime =
-        Date.now();
-
-
-    const detectionSeconds =
-        (
-
-            scanDebugDetectedTime -
-            scanDebugReadyTime
-
-        ) / 1000;
-
-
-    console.log(
-        "=========================================="
-    );
-
-
-    console.log(
-        "[SCAN T0] QR DETECTED"
-    );
-
-
-    console.log(
-        "[SCAN] BUILD:",
-        SCANNER_BUILD
-    );
-
-
-    console.log(
-        "[SCAN] QR:",
-        qrID
-    );
-
-
-    console.log(
-        "[SCAN] Detection:",
-        detectionSeconds.toFixed(3) +
-        "s"
-    );
-
-
-    console.log(
-        "=========================================="
-    );
-
-
     showMessage(`
 
-        <div>
+        <div class="result-processing">
 
-            <b>
-                QR DETECTED
-            </b>
+            <div class="processing-spinner"></div>
 
-            <br><br>
+            <div class="processing-title">
+                Recording Attendance
+            </div>
 
-            QR:
-            ${qrID}
-
-            <br><br>
-
-            Detection Time:
-            <b>
-                ${detectionSeconds.toFixed(2)}
-                seconds
-            </b>
-
-            <br><br>
-
-            Sending to server...
+            <div class="processing-text">
+                Please wait...
+            </div>
 
         </div>
 
@@ -995,281 +860,18 @@ async function onScanSuccess(
 
     try {
 
-        /*
-         * ====================================================
-         * T1 — API REQUEST START
-         * ====================================================
-         */
-
-        scanDebugRequestStartTime =
-            Date.now();
-
-
-        const requestDelay =
-            (
-
-                scanDebugRequestStartTime -
-                scanDebugDetectedTime
-
-            ) / 1000;
-
-
-        console.log(
-            "[SCAN T1] API REQUEST START"
-        );
-
-
-        console.log(
-            "[SCAN] Delay after QR detection:",
-            requestDelay.toFixed(3) +
-            "s"
-        );
-
-
-        showMessage(`
-
-            <div>
-
-                <b>
-                    QR DETECTED
-                </b>
-
-                <br><br>
-
-                QR:
-                ${qrID}
-
-                <br><br>
-
-                Detection:
-                <b>
-                    ${detectionSeconds.toFixed(2)}s
-                </b>
-
-                <br>
-
-                Request Start:
-                <b>
-                    ${requestDelay.toFixed(2)}s
-                </b>
-
-                <br><br>
-
-                Contacting server...
-
-            </div>
-
-        `);
-
-
-        /*
-         * ====================================================
-         * SEND TO APPS SCRIPT
-         * ====================================================
-         */
-
         const result =
             await postAttendance(
                 qrID
             );
 
 
-        /*
-         * ====================================================
-         * T4 — API RESULT RECEIVED
-         * ====================================================
-         */
-
-        const apiResponseTime =
-            Date.now();
-
-
-        const apiSeconds =
-            (
-
-                apiResponseTime -
-                scanDebugRequestStartTime
-
-            ) / 1000;
-
-
-        const totalSeconds =
-            (
-
-                apiResponseTime -
-                scanDebugReadyTime
-
-            ) / 1000;
-
-
-        console.log(
-            "=========================================="
-        );
-
-
-        console.log(
-            "[SCAN T4] API RESULT RECEIVED"
-        );
-
-
-        console.log(
-            "[SCAN] BUILD:",
-            SCANNER_BUILD
-        );
-
-
-        console.log(
-            "[SCAN] QR:",
-            qrID
-        );
-
-
-        console.log(
-            "[SCAN] QR Detection:",
-            detectionSeconds.toFixed(3) +
-            "s"
-        );
-
-
-        console.log(
-            "[SCAN] API Response:",
-            apiSeconds.toFixed(3) +
-            "s"
-        );
-
-
-        console.log(
-            "[SCAN] Total:",
-            totalSeconds.toFixed(3) +
-            "s"
-        );
-
-
-        console.log(
-            "[SCAN] JSONP Browser Wait:",
-            (
-
-                (
-
-                    jsonpDebugCallbackTime -
-                    jsonpDebugScriptAppendTime
-
-                ) / 1000
-
-            ).toFixed(3) +
-            "s"
-        );
-
-
-        console.log(
-            "=========================================="
-        );
-
-
         if (
             result.success
         ) {
 
-            /*
-             * ================================================
-             * T5 — SUCCESS UI
-             * ================================================
-             */
-
-            const uiStartTime =
-                Date.now();
-
-
-            showMessage(`
-
-                <div class="success">
-
-                    <b>
-                        ✅ Attendance Recorded
-                    </b>
-
-                </div>
-
-                <br>
-
-                ${result.message}
-
-                <br><br>
-
-                <hr>
-
-                <small>
-
-                    <b>
-                        BUILD:
-                        ${SCANNER_BUILD}
-                    </b>
-
-                    <br><br>
-
-                    <b>
-                        DETAILED DIAGNOSTIC
-                    </b>
-
-                    <br><br>
-
-                    QR Detection:
-                    ${detectionSeconds.toFixed(2)}s
-
-                    <br>
-
-                    Request Start Delay:
-                    ${requestDelay.toFixed(2)}s
-
-                    <br>
-
-                    Server Response:
-                    ${apiSeconds.toFixed(2)}s
-
-                    <br>
-
-                    JSONP Browser Wait:
-                    <b>
-                        ${(
-                            (
-                                jsonpDebugCallbackTime -
-                                jsonpDebugScriptAppendTime
-                            ) / 1000
-                        ).toFixed(2)}s
-                    </b>
-
-                    <br>
-
-                    Total:
-                    <b>
-                        ${totalSeconds.toFixed(2)}s
-                    </b>
-
-                </small>
-
-            `);
-
-
-            const uiEndTime =
-                Date.now();
-
-
-            console.log(
-                "[SCAN T5] SUCCESS UI RENDERED"
-            );
-
-
-            console.log(
-                "[SCAN] UI render:",
-                (
-
-                    (
-                        uiEndTime -
-                        uiStartTime
-                    ) / 1000
-
-                ).toFixed(3) +
-                "s"
+            renderSuccess(
+                result
             );
 
         }
@@ -1278,35 +880,24 @@ async function onScanSuccess(
 
             showMessage(`
 
-                <div class="error">
+                <div class="result-error">
 
-                    ❌ ${result.message}
+                    <div class="result-icon">
+                        !
+                    </div>
+
+                    <div class="result-title">
+                        Attendance Not Recorded
+                    </div>
+
+                    <div class="result-message">
+                        ${escapeHtml(
+                            result.message ||
+                            "Unable to record attendance."
+                        )}
+                    </div>
 
                 </div>
-
-                <br>
-
-                <small>
-
-                    BUILD:
-                    ${SCANNER_BUILD}
-
-                    <br><br>
-
-                    QR Detection:
-                    ${detectionSeconds.toFixed(2)}s
-
-                    <br>
-
-                    Server Response:
-                    ${apiSeconds.toFixed(2)}s
-
-                    <br>
-
-                    Total:
-                    ${totalSeconds.toFixed(2)}s
-
-                </small>
 
             `);
 
@@ -1327,85 +918,31 @@ async function onScanSuccess(
                 );
 
 
-        const errorTime =
-            Date.now();
+        showMessage(`
 
+            <div class="result-error">
 
-        const totalSeconds =
-            (
+                <div class="result-icon">
+                    !
+                </div>
 
-                errorTime -
-                scanDebugReadyTime
+                <div class="result-title">
+                    Connection Error
+                </div>
 
-            ) / 1000;
+                <div class="result-message">
+                    ${escapeHtml(
+                        errorMessage
+                    )}
+                </div>
 
-
-        console.error(
-            "=========================================="
-        );
-
-
-        console.error(
-            "[SCAN ERROR]"
-        );
-
-
-        console.error(
-            "[SCAN ERROR MESSAGE]:",
-            errorMessage
-        );
-
-
-        console.error(
-            "[SCAN TOTAL]:",
-            totalSeconds.toFixed(3) +
-            "s"
-        );
-
-
-        console.error(
-            "=========================================="
-        );
-
-
-        showConnectionError(`
-
-            ${errorMessage}
-
-            <br><br>
-
-            <small>
-
-                BUILD:
-                ${SCANNER_BUILD}
-
-                <br><br>
-
-                QR Detection:
-                ${detectionSeconds.toFixed(2)}s
-
-                <br>
-
-                Total:
-                ${totalSeconds.toFixed(2)}s
-
-            </small>
+            </div>
 
         `);
 
     }
 
     finally {
-
-        /*
-         * ====================================================
-         * PRESERVE OPT-01 BEHAVIOR
-         * ====================================================
-         *
-         * The 2-second busy release is intentionally retained.
-         *
-         * We are NOT optimizing this yet.
-         */
 
         setTimeout(
             function () {
@@ -1414,9 +951,25 @@ async function onScanSuccess(
                     false;
 
 
-                showMessage(
-                    "Ready to Scan..."
-                );
+                showMessage(`
+
+                    <div class="result-ready">
+
+                        <div class="ready-icon">
+                            ✓
+                        </div>
+
+                        <div class="ready-title">
+                            Ready to Scan
+                        </div>
+
+                        <div class="ready-text">
+                            Present the QR code inside the scanner.
+                        </div>
+
+                    </div>
+
+                `);
 
             },
             2000
@@ -1426,12 +979,6 @@ async function onScanSuccess(
 
 }
 
-
-/*
- * ==========================================================
- * START SCANNER
- * ==========================================================
- */
 
 async function startScanner() {
 
@@ -1444,16 +991,23 @@ async function startScanner() {
 
             showMessage(`
 
-                <div class="error">
+                <div class="result-error">
 
-                    Scanner library failed to load
+                    <div class="result-icon">
+                        !
+                    </div>
+
+                    <div class="result-title">
+                        Scanner Unavailable
+                    </div>
+
+                    <div class="result-message">
+                        Scanner library failed to load.
+                        Check your internet connection
+                        and reload the page.
+                    </div>
 
                 </div>
-
-                <br>
-
-                Check your internet connection
-                and reload the scanner.
 
             `);
 
@@ -1470,26 +1024,22 @@ async function startScanner() {
 
         showMessage(`
 
-            <div>
+            <div class="result-processing">
 
-                Camera starting...
+                <div class="processing-spinner"></div>
 
-                <br><br>
+                <div class="processing-title">
+                    Starting Camera
+                </div>
 
-                <small>
+                <div class="processing-text">
                     Preparing scanner...
-                </small>
+                </div>
 
             </div>
 
         `);
 
-
-        /*
-         * ====================================================
-         * CAMERA ENUMERATION
-         * ====================================================
-         */
 
         const cameras =
             await Html5Qrcode.getCameras();
@@ -1512,15 +1062,6 @@ async function startScanner() {
                 cameras
             );
 
-
-        /*
-         * ====================================================
-         * OPT-01 SCANNER CONFIGURATION
-         * ====================================================
-         *
-         * PRESERVED EXACTLY.
-         * ====================================================
-         */
 
         await scanner.start(
 
@@ -1589,48 +1130,21 @@ async function startScanner() {
         );
 
 
-        /*
-         * ====================================================
-         * SCANNER READY
-         * ====================================================
-         */
-
-        scanDebugReadyTime =
-            Date.now();
-
-
-        console.log(
-            "[SCANNER READY]"
-        );
-
-
-        console.log(
-            "BUILD:",
-            SCANNER_BUILD
-        );
-
-
-        console.log(
-            "QR TIMER STARTED"
-        );
-
-
         showMessage(`
 
-            <div>
+            <div class="result-ready">
 
-                <b>
+                <div class="ready-icon">
+                    ✓
+                </div>
+
+                <div class="ready-title">
                     Ready to Scan
-                </b>
+                </div>
 
-                <br><br>
-
-                <small>
-
-                    Build:
-                    ${SCANNER_BUILD}
-
-                </small>
+                <div class="ready-text">
+                    Present the QR code inside the scanner.
+                </div>
 
             </div>
 
@@ -1657,16 +1171,22 @@ async function startScanner() {
 
             showMessage(`
 
-                <div class="error">
+                <div class="result-error">
 
-                    Camera access blocked
+                    <div class="result-icon">
+                        !
+                    </div>
+
+                    <div class="result-title">
+                        Camera Access Blocked
+                    </div>
+
+                    <div class="result-message">
+                        Allow camera permission for this
+                        website and reload the scanner.
+                    </div>
 
                 </div>
-
-                <br>
-
-                Allow camera permission and
-                reload the scanner.
 
             `);
 
@@ -1676,15 +1196,23 @@ async function startScanner() {
 
             showMessage(`
 
-                <div class="error">
+                <div class="result-error">
 
-                    Camera Error
+                    <div class="result-icon">
+                        !
+                    </div>
+
+                    <div class="result-title">
+                        Camera Error
+                    </div>
+
+                    <div class="result-message">
+                        ${escapeHtml(
+                            errorText
+                        )}
+                    </div>
 
                 </div>
-
-                <br>
-
-                ${errorText}
 
             `);
 
@@ -1700,38 +1228,27 @@ async function startScanner() {
 }
 
 
-/*
- * ==========================================================
- * PAGE INITIALIZATION
- * ==========================================================
- */
-
 window.onload =
     function () {
 
         setupStartButton();
 
-        showBuildMarker();
-
 
         showMessage(`
 
-            <div>
+            <div class="result-ready">
 
-                Press
-                <b>
-                    Start Scanner
-                </b>
-                to begin.
+                <div class="ready-icon">
+                    ✓
+                </div>
 
-                <br><br>
+                <div class="ready-title">
+                    Ready to Start
+                </div>
 
-                <small>
-
-                    Build:
-                    ${SCANNER_BUILD}
-
-                </small>
+                <div class="ready-text">
+                    Tap Start Scanner to activate the camera.
+                </div>
 
             </div>
 
