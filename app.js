@@ -1,3 +1,6 @@
+const DASHBOARD_URL =
+    "https://script.google.com/macros/s/AKfycbyO5afPbnMP54PlrjHF73v5PWf2Qo-mVmxr9h33FP7s_Flml6DBva8xShp1i395aMB9Vg/exec";
+
 const API_URL =
     "https://script.google.com/macros/s/AKfycbyO5afPbnMP54PlrjHF73v5PWf2Qo-mVmxr9h33FP7s_Flml6DBva8xShp1i395aMB9Vg/exec";
 
@@ -37,59 +40,59 @@ function setupStartButton() {
             "startScannerBtn"
         );
 
-    if (!button) {
-        return;
+    if (button) {
+
+        button.addEventListener(
+            "click",
+            function () {
+
+                button.disabled =
+                    true;
+
+                button.textContent =
+                    "Starting...";
+
+
+                startScanner()
+                    .catch(
+                        function () {}
+                    )
+                    .finally(
+                        function () {
+
+                            button.disabled =
+                                false;
+
+                            button.textContent =
+                                "Start Scanner";
+
+                        }
+                    );
+
+            }
+        );
+
     }
 
-    button.addEventListener(
-        "click",
-        function () {
 
-            button.disabled =
-                true;
+    const dashboardButton =
+        document.getElementById(
+            "dashboardBtn"
+        );
 
-            button.textContent =
-                "Starting...";
+    if (dashboardButton) {
 
+        dashboardButton.addEventListener(
+            "click",
+            function () {
 
-            startScanner()
-                .catch(
-                    function () {}
-                )
-                .finally(
-                    function () {
+                window.location.href =
+                    DASHBOARD_URL;
 
-                        button.disabled =
-                            false;
+            }
+        );
 
-                        button.textContent =
-                            "Start Scanner";
-
-                    }
-                );
-
-        }
-    );
-
-}
-
-
-function sleep(
-    ms
-) {
-
-    return new Promise(
-        function (
-            resolve
-        ) {
-
-            setTimeout(
-                resolve,
-                ms
-            );
-
-        }
-    );
+    }
 
 }
 
