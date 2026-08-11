@@ -7,7 +7,7 @@
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1"
+        content="width=device-width, initial-scale=1, viewport-fit=cover"
     >
 
     <meta
@@ -15,9 +15,12 @@
         content="#212155"
     >
 
-    <title>
-        SCA-CCP Attendance Scanner
-    </title>
+    <meta
+        name="apple-mobile-web-app-capable"
+        content="yes"
+    >
+
+    <title>SCA-CCP Attendance Scanner</title>
 
     <base href="./">
 
@@ -40,11 +43,15 @@
         <section class="scanner-card">
 
 
+            <!-- HEADER -->
+
             <header class="scanner-header">
 
-                <div class="logo-mark">
-                    SCA
-                </div>
+                <img
+                    src="./sca_logo.png"
+                    alt="SCA-CCP Logo"
+                    class="organization-logo"
+                >
 
 
                 <div class="organization">
@@ -54,10 +61,11 @@
                     </div>
 
                     <div class="organization-name">
-                        Student Catholic Action
-                        <span>
-                            Christian Communities Program
-                        </span>
+                        Student Catholic Action – Christian Communities Program
+                    </div>
+
+                    <div class="office-name">
+                        Campus Ministry Office
                     </div>
 
                 </div>
@@ -67,6 +75,8 @@
 
             <div class="header-divider"></div>
 
+
+            <!-- PAGE HEADING -->
 
             <section class="scanner-heading">
 
@@ -79,12 +89,13 @@
                 </h1>
 
                 <p>
-                    Scan a member QR code to record
-                    attendance.
+                    Scan a member QR code to record attendance.
                 </p>
 
             </section>
 
+
+            <!-- CONTROLS -->
 
             <section class="scanner-controls">
 
@@ -102,14 +113,33 @@
 
                 </button>
 
+
+                <button
+                    id="dashboardBtn"
+                    type="button"
+                    class="dashboard-button"
+                >
+
+                    <span class="dashboard-icon">
+                        ←
+                    </span>
+
+                    Back to Dashboard
+
+                </button>
+
             </section>
 
+
+            <!-- CAMERA -->
 
             <section
                 id="reader"
                 class="reader"
             ></section>
 
+
+            <!-- RESULT -->
 
             <section
                 id="result"
@@ -127,14 +157,15 @@
                     </div>
 
                     <div class="ready-text">
-                        Tap Start Scanner to activate
-                        the camera.
+                        Tap Start Scanner to activate the camera.
                     </div>
 
                 </div>
 
             </section>
 
+
+            <!-- FOOTER -->
 
             <footer class="scanner-footer">
 
@@ -154,9 +185,7 @@
     </main>
 
 
-    <script
-        src="./app.js?v=OPT03"
-    ></script>
+    <script src="./app.js?v=OPT04"></script>
 
 </body>
 
