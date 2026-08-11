@@ -994,9 +994,9 @@ h1 {
 
     cursor: pointer;
 
-    transition:
-        transform .15s ease,
-        background .15s ease;
+    appearance: none;
+
+    -webkit-appearance: none;
 
 }
 
@@ -1014,7 +1014,7 @@ h1 {
 .dashboard-button:active {
 
     transform:
-        translateY(0);
+        translateY(1px);
 
 }
 
