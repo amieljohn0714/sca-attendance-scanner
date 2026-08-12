@@ -73,6 +73,27 @@ function setupStartButton() {
         );
 
     }
+
+
+    const dashboardButton =
+        document.getElementById(
+            "dashboardBtn"
+        );
+
+    if (dashboardButton) {
+
+        dashboardButton.addEventListener(
+            "click",
+            function () {
+
+                window.location.href =
+                    DASHBOARD_URL;
+
+            }
+        );
+
+    }
+
 }
 
 
@@ -210,49 +231,37 @@ function getCameraIdOrConfig(
 }
 
 
-function jsonpGet(url) {
-    return new Promise(function(resolve,reject) {
-        var callbackName =
-            "jsonp_callback_" +
-            Date.now() +
-            "_" +
-            Math.floor(Math.random() * 10000);
-
-        var script = document.createElement("script");
-        var finished = false;
-
-        var timeout = setTimeout(function() {
-            if (finished) return;
-            finished = true;
-            delete window[callbackName];
-            script.remove();
-            reject(new Error("Apps Script endpoint timed out."));
-        },30000);
-
-        window[callbackName] = function(data) {
-            if (finished) return;
-            finished = true;
-            clearTimeout(timeout);
+function jsonpGet(
+    url
+) {
+    return new Promise(function(resolve,reject){
+        var callbackName='jsonp_callback_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+        var script=document.createElement('script');
+        var settled=false;
+        var timer=setTimeout(function(){
+            if(settled)return;
+            settled=true;
+            cleanup();
+            reject(new Error('Apps Script response timed out.'));
+        },20000);
+        function cleanup(){
+            clearTimeout(timer);
+            try{delete window[callbackName];}catch(e){}
+            if(script.parentNode)script.parentNode.removeChild(script);
+        }
+        window[callbackName]=function(data){
+            if(settled)return;
+            settled=true;
+            cleanup();
             resolve(data);
-            delete window[callbackName];
-            script.remove();
         };
-
-        script.src =
-            url +
-            (url.indexOf("?") === -1 ? "?" : "&") +
-            "callback=" +
-            encodeURIComponent(callbackName);
-
-        script.onerror = function() {
-            if (finished) return;
-            finished = true;
-            clearTimeout(timeout);
-            delete window[callbackName];
-            script.remove();
-            reject(new Error("Network error while calling Apps Script endpoint."));
+        script.onerror=function(){
+            if(settled)return;
+            settled=true;
+            cleanup();
+            reject(new Error('Network error while calling Apps Script endpoint.'));
         };
-
+        script.src=url+(url.indexOf('?')===-1?'?':'&')+'callback='+encodeURIComponent(callbackName);
         document.body.appendChild(script);
     });
 }
@@ -299,7 +308,11 @@ async function postAttendance(
         result =
             await jsonpGet(
                 API_URL +
-                "?scan=1&qrID=" + encodeURIComponent(qrID));
+                "?scan=1&qrID=" +
+                encodeURIComponent(
+                    qrID
+                )
+            );
 
     }
 
