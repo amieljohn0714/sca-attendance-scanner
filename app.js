@@ -227,7 +227,7 @@ function jsonpGet(url) {
             delete window[callbackName];
             script.remove();
             reject(new Error("Apps Script endpoint timed out."));
-        },15000);
+        },30000);
 
         window[callbackName] = function(data) {
             if (finished) return;
