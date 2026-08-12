@@ -73,27 +73,6 @@ function setupStartButton() {
         );
 
     }
-
-
-    const dashboardButton =
-        document.getElementById(
-            "dashboardBtn"
-        );
-
-    if (dashboardButton) {
-
-        dashboardButton.addEventListener(
-            "click",
-            function () {
-
-                window.location.href =
-                    DASHBOARD_URL;
-
-            }
-        );
-
-    }
-
 }
 
 
@@ -231,96 +210,52 @@ function getCameraIdOrConfig(
 }
 
 
-function jsonpGet(
-    url
-) {
+function jsonpGet(url) {
+    return new Promise(function(resolve,reject) {
+        var callbackName =
+            "jsonp_callback_" +
+            Date.now() +
+            "_" +
+            Math.floor(Math.random() * 10000);
 
-    return new Promise(
-        function (
-            resolve,
-            reject
-        ) {
+        var script = document.createElement("script");
+        var finished = false;
 
-            var callbackName =
-                "jsonp_callback_" +
-                Date.now() +
-                "_" +
-                Math.floor(
-                    Math.random() *
-                    10000
-                );
+        var timeout = setTimeout(function() {
+            if (finished) return;
+            finished = true;
+            delete window[callbackName];
+            script.remove();
+            reject(new Error("Apps Script endpoint timed out."));
+        },15000);
 
+        window[callbackName] = function(data) {
+            if (finished) return;
+            finished = true;
+            clearTimeout(timeout);
+            resolve(data);
+            delete window[callbackName];
+            script.remove();
+        };
 
-            var script =
-                document.createElement(
-                    "script"
-                );
+        script.src =
+            url +
+            (url.indexOf("?") === -1 ? "?" : "&") +
+            "callback=" +
+            encodeURIComponent(callbackName);
 
+        script.onerror = function() {
+            if (finished) return;
+            finished = true;
+            clearTimeout(timeout);
+            delete window[callbackName];
+            script.remove();
+            reject(new Error("Network error while calling Apps Script endpoint."));
+        };
 
-            window[
-                callbackName
-            ] =
-                function (
-                    data
-                ) {
-
-                    resolve(
-                        data
-                    );
-
-
-                    delete window[
-                        callbackName
-                    ];
-
-
-                    script.remove();
-
-                };
-
-
-            script.src =
-                url +
-
-                (
-                    url.indexOf("?") === -1
-                        ? "?"
-                        : "&"
-                ) +
-
-                "callback=" +
-                callbackName;
-
-
-            script.onerror =
-                function () {
-
-                    delete window[
-                        callbackName
-                    ];
-
-
-                    script.remove();
-
-
-                    reject(
-                        new Error(
-                            "Network error while calling Apps Script endpoint."
-                        )
-                    );
-
-                };
-
-
-            document.body.appendChild(
-                script
-            );
-
-        }
-    );
-
+        document.body.appendChild(script);
+    });
 }
-
 
 async function postAttendance(
     qrID,
@@ -364,11 +299,7 @@ async function postAttendance(
         result =
             await jsonpGet(
                 API_URL +
-                "?qrID=" +
-                encodeURIComponent(
-                    qrID
-                )
-            );
+                "?scan=1&qrID=" + encodeURIComponent(qrID));
 
     }
 
