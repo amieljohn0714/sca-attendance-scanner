@@ -115,6 +115,7 @@
 
 
    <a
+    id="dashboardBtn"
     href="https://script.google.com/macros/s/AKfycbyO5afPbnMP54PlrjHF73v5PWf2Qo-mVmxr9h33FP7s_Flml6DBva8xShp1i395aMB9Vg/exec"
     class="dashboard-button"
     aria-label="Back to Dashboard"
@@ -180,35 +181,9 @@
     </main>
 
 
-    <script src="./app.js?v=OPT04"></script>
+    <script src="./app.js?v=OPT05"></script>
 
-    <script>
-
-(function () {
-
-    var dashboardButton =
-        document.getElementById(
-            'dashboardBtn'
-        );
-
-    if (!dashboardButton) {
-        return;
-    }
-
-    dashboardButton.addEventListener(
-        'click',
-        function () {
-
-            window.location.assign(
-                'https://script.google.com/macros/s/AKfycbyO5afPbnMP54PlrjHF73v5PWf2Qo-mVmxr9h33FP7s_Flml6DBva8xShp1i395aMB9Vg/exec'
-            );
-
-        }
-    );
-
-}());
-
-</script>
+    
 </body>
 
 </html>
